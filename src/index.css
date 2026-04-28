@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+/* Varela Round - headings */
+@font-face { font-family: 'Varela Round'; font-style: normal; font-weight: 400; font-display: swap; src: url(./fonts/varela-round-400.ttf) format('truetype'); }
+
+/* Nunito Sans - body */
+@font-face { font-family: 'Nunito Sans'; font-style: normal; font-weight: 300; font-display: swap; src: url(./fonts/nunito-sans-300.ttf) format('truetype'); }
+@font-face { font-family: 'Nunito Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url(./fonts/nunito-sans-400.ttf) format('truetype'); }
+@font-face { font-family: 'Nunito Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url(./fonts/nunito-sans-500.ttf) format('truetype'); }
+@font-face { font-family: 'Nunito Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url(./fonts/nunito-sans-600.ttf) format('truetype'); }
+@font-face { font-family: 'Nunito Sans'; font-style: normal; font-weight: 700; font-display: swap; src: url(./fonts/nunito-sans-700.ttf) format('truetype'); }
+
+@theme {
+  --color-primary: #F472B6;
+  --color-primary-light: #F9A8D4;
+  --color-secondary: #FBCFE8;
+  --color-cta: #22C55E;
+  --color-surface: #FDF2F8;
+  --color-ink: #9D174D;
+  --color-ink-light: #BE185D;
+  --font-sans: 'Nunito Sans', sans-serif;
+  --font-heading: 'Varela Round', sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
