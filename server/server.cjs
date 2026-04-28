@@ -5,18 +5,20 @@ const path = require('path')
 const fs = require('fs')
 const initSqlJs = require('sql.js')
 
-const PORT = 3001
-const DB_PATH = path.join(__dirname, 'pg.sqlite')
-const UPLOADS = path.join(__dirname, 'uploads')
+/**
+ * Create the Express app with a SQLite database.
+ * @param {object} opts
+ * @param {string} opts.dbPath - Path to SQLite file
+ * @param {string} opts.uploadsDir - Path to uploads directory
+ * @returns {Promise<{app: import('express').Express, close: () => void}>}
+ */
+async function createApp({ dbPath, uploadsDir }) {
+  fs.mkdirSync(uploadsDir, { recursive: true })
 
-fs.mkdirSync(UPLOADS, { recursive: true })
-
-async function main() {
   const SQL = await initSqlJs()
-
   let db
-  if (fs.existsSync(DB_PATH)) {
-    db = new SQL.Database(fs.readFileSync(DB_PATH))
+  if (fs.existsSync(dbPath)) {
+    db = new SQL.Database(fs.readFileSync(dbPath))
   } else {
     db = new SQL.Database()
   }
@@ -38,9 +40,8 @@ async function main() {
   )`)
   save()
 
-  function save() { fs.writeFileSync(DB_PATH, Buffer.from(db.export())) }
+  function save() { fs.writeFileSync(dbPath, Buffer.from(db.export())) }
 
-  /** Run a parameterized SELECT, return array of objects. */
   function query(sql, params = []) {
     const stmt = db.prepare(sql)
     stmt.bind(params)
@@ -53,10 +54,10 @@ async function main() {
   const app = express()
   app.use(cors())
   app.use(express.json())
-  app.use('/uploads', express.static(UPLOADS))
+  app.use('/uploads', express.static(uploadsDir))
 
   const upload = multer({ storage: multer.diskStorage({
-    destination: (_, __, cb) => cb(null, UPLOADS),
+    destination: (_, __, cb) => cb(null, uploadsDir),
     filename: (_, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
   })})
 
@@ -105,7 +106,7 @@ async function main() {
   app.delete('/api/gallery/:id', (req, res) => {
     const rows = query('SELECT filename FROM gallery WHERE id = ?', [Number(req.params.id)])
     if (rows.length) {
-      fs.unlink(path.join(UPLOADS, rows[0].filename), () => {})
+      fs.unlink(path.join(uploadsDir, rows[0].filename), () => {})
       db.run('DELETE FROM gallery WHERE id = ?', [Number(req.params.id)])
       save()
     }
@@ -132,7 +133,7 @@ async function main() {
   app.delete('/api/documents/:id', (req, res) => {
     const rows = query('SELECT filename FROM documents WHERE id = ?', [Number(req.params.id)])
     if (rows.length) {
-      fs.unlink(path.join(UPLOADS, rows[0].filename), () => {})
+      fs.unlink(path.join(uploadsDir, rows[0].filename), () => {})
       db.run('DELETE FROM documents WHERE id = ?', [Number(req.params.id)])
       save()
     }
@@ -180,12 +181,21 @@ async function main() {
     res.set({ 'Content-Type': 'application/zip', 'Content-Disposition': `attachment; filename="${name}.zip"` })
     const archive = archiver('zip', { zlib: { level: 9 } })
     archive.pipe(res)
-    archive.file(DB_PATH, { name: 'pg.sqlite' })
-    archive.directory(UPLOADS, 'uploads')
+    archive.file(dbPath, { name: 'pg.sqlite' })
+    archive.directory(uploadsDir, 'uploads')
     archive.finalize()
   })
 
-  app.listen(PORT, () => console.log(`PG server running on http://localhost:${PORT}`))
+  return { app, close: () => db.close() }
 }
 
-main()
+// Run server when executed directly
+if (require.main === module) {
+  const DB_PATH = path.join(__dirname, 'pg.sqlite')
+  const UPLOADS = path.join(__dirname, 'uploads')
+  createApp({ dbPath: DB_PATH, uploadsDir: UPLOADS }).then(({ app }) => {
+    app.listen(3001, () => console.log('PG server running on http://localhost:3001'))
+  })
+}
+
+module.exports = { createApp }
