@@ -36,12 +36,7 @@ export default function HomePage({ onNavigate }) {
         <p className="text-ink/50 max-w-md mb-6">Your little one is on the way — let's make every moment count together.</p>
 
         {/* Week tracker or due date prompt */}
-        {dueDate ? (
-          <div className="mb-8 flex flex-col items-center">
-            <WeekTracker dueDate={dueDate} />
-            <button onClick={clearDueDate} className="mt-3 text-xs text-ink/30 hover:text-ink/50 cursor-pointer transition-colors duration-150">Change due date</button>
-          </div>
-        ) : (
+        {!dueDate && (
           <div className="mb-8 w-full max-w-sm">
             <p className="text-ink/60 mb-4">When is your baby due?</p>
             <form onSubmit={saveDueDate} className="flex gap-2">
@@ -70,6 +65,13 @@ export default function HomePage({ onNavigate }) {
             </button>
           ))}
         </div>
+
+        {dueDate && (
+          <div className="mt-8 flex flex-col items-center">
+            <WeekTracker dueDate={dueDate} />
+            <button onClick={clearDueDate} className="mt-3 text-xs text-ink/30 hover:text-ink/50 cursor-pointer transition-colors duration-150">Change due date</button>
+          </div>
+        )}
       </div>
 
       <footer className="text-center text-xs text-ink/30 py-4 space-y-2">
