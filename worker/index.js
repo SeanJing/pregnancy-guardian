@@ -8,24 +8,10 @@ app.use('*', cors())
 let dbInitialized = false
 async function initDB(db) {
   if (dbInitialized) return
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS calendar_data (
-      date TEXT PRIMARY KEY, todos TEXT DEFAULT '[]', note TEXT DEFAULT '',
-      diet TEXT DEFAULT '{}', monitor TEXT DEFAULT '{}', exercises TEXT DEFAULT '{}'
-    );
-    CREATE TABLE IF NOT EXISTS gallery (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL,
-      original_name TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE TABLE IF NOT EXISTS documents (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL,
-      original_name TEXT NOT NULL, size INTEGER DEFAULT 0,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY, value TEXT NOT NULL
-    );
-  `)
+  await db.exec("CREATE TABLE IF NOT EXISTS calendar_data (date TEXT PRIMARY KEY, todos TEXT DEFAULT '[]', note TEXT DEFAULT '', diet TEXT DEFAULT '{}', monitor TEXT DEFAULT '{}', exercises TEXT DEFAULT '{}');")
+  await db.exec("CREATE TABLE IF NOT EXISTS gallery (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')));")
+  await db.exec("CREATE TABLE IF NOT EXISTS documents (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, size INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')));")
+  await db.exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);")
   dbInitialized = true
 }
 
