@@ -39,7 +39,7 @@ export default function GalleryPage() {
             <p className="text-sm">No photos yet. Tap "Add Photos" to get started.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1">
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {photos.map((p, i) => (
               <button key={p.id} onClick={() => setViewing(i)} className="aspect-square overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity duration-150">
                 <img src={UPLOADS_BASE + p.url} alt={p.name} className="w-full h-full object-cover" />
