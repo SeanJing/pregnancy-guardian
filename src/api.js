@@ -16,6 +16,7 @@ export const api = {
 
   // Calendar
   getCalendar: () => json('/calendar'),
+  getDay: (date) => json(`/calendar/${date}`),
   saveDay: (date, data) => json(`/calendar/${date}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

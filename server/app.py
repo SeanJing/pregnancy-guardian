@@ -93,6 +93,23 @@ def get_calendar():
     return data
 
 
+@app.get("/api/calendar/{date_str}")
+def get_calendar_day(date_str: str):
+    conn = get_db()
+    row = conn.execute("SELECT todos, note, diet, monitor, exercises FROM calendar_data WHERE date = ?", (date_str,)).fetchone()
+    data = {"todos": [], "pics": [], "note": "", "diet": {}, "monitor": {}, "exercises": {}}
+    if row:
+        data["todos"] = json.loads(row["todos"])
+        data["note"] = row["note"]
+        data["diet"] = json.loads(row["diet"] or "{}")
+        data["monitor"] = json.loads(row["monitor"] or "{}")
+        data["exercises"] = json.loads(row["exercises"] or "{}")
+    for r in conn.execute("SELECT id, filename, original_name FROM gallery WHERE strftime('%Y-%m-%d', created_at) = ?", (date_str,)):
+        data["pics"].append({"id": r["id"], "url": f"/uploads/{r['filename']}", "name": r["original_name"]})
+    conn.close()
+    return data
+
+
 @app.put("/api/calendar/{date_str}")
 async def save_calendar(date_str: str, request: Request):
     body = await request.json()

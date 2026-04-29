@@ -9,7 +9,7 @@ export default function CalendarPage() {
   const [month, setMonth] = useState(now.getMonth())
   const [activeKey, setActiveKey] = useState(null)
   const [activeTitle, setActiveTitle] = useState('')
-  const { data, getDayData, setDayData } = useCalendarData()
+  const { data, getDayData, setDayData, refreshDay } = useCalendarData()
 
   const label = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
@@ -22,6 +22,7 @@ export default function CalendarPage() {
   const openDay = (day, key) => {
     setActiveKey(key)
     setActiveTitle(new Date(year, month, day).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }))
+    refreshDay(key)
   }
 
   return (
