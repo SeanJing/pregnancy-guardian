@@ -41,7 +41,7 @@ export default function CalendarPage() {
         </div>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-200 ${activeKey ? 'pr-0' : ''}`}>
+        <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-500 ease-in-out ${activeKey ? 'pr-0' : ''}`}>
           <CalendarGrid year={year} month={month} data={data} onDayClick={openDay} />
         </div>
         {activeKey && (
