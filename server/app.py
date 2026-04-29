@@ -59,6 +59,11 @@ def init_db():
             value TEXT NOT NULL
         );
     """)
+    # Migrate: add columns if missing
+    existing = {r[1] for r in conn.execute("PRAGMA table_info(calendar_data)")}
+    for col in ("diet", "monitor", "exercises"):
+        if col not in existing:
+            conn.execute(f"ALTER TABLE calendar_data ADD COLUMN {col} TEXT DEFAULT '{{}}'")
     conn.commit()
     conn.close()
 
