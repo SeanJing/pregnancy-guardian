@@ -21,9 +21,12 @@ export default function CalendarGrid({ year, month, data, onDayClick }) {
         {Array.from({ length: daysInMonth }, (_, i) => {
           const d = i + 1
           const key = dayKey(year, month, d)
-          const dd = data[key] || { todos: [], pics: [], note: '' }
+          const dd = data[key] || { todos: [], pics: [], note: '', diet: {}, monitor: {}, exercises: {} }
           const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear()
-          const hasContent = dd.todos.length > 0 || dd.pics.length > 0 || !!dd.note
+          const hasDiet = Object.values(dd.diet || {}).some(m => m?.name)
+          const hasMonitor = Object.values(dd.monitor || {}).some(v => v)
+          const hasExercises = Object.values(dd.exercises || {}).some(v => v)
+          const hasContent = dd.todos.length > 0 || hasDiet || hasMonitor || hasExercises
 
           return (
             <DayCell
@@ -31,7 +34,7 @@ export default function CalendarGrid({ year, month, data, onDayClick }) {
               day={d}
               isToday={isToday}
               hasContent={hasContent}
-              contentFlags={{ todos: dd.todos.length > 0, pics: dd.pics.length > 0, note: !!dd.note }}
+              contentFlags={{ todos: dd.todos.length > 0, diet: hasDiet, monitor: hasMonitor, exercises: hasExercises }}
               onClick={() => onDayClick(d, key)}
             />
           )

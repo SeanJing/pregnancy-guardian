@@ -36,7 +36,10 @@ def init_db():
         CREATE TABLE IF NOT EXISTS calendar_data (
             date TEXT PRIMARY KEY,
             todos TEXT DEFAULT '[]',
-            note TEXT DEFAULT ''
+            note TEXT DEFAULT '',
+            diet TEXT DEFAULT '{}',
+            monitor TEXT DEFAULT '{}',
+            exercises TEXT DEFAULT '{}'
         );
         CREATE TABLE IF NOT EXISTS gallery (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,8 +75,15 @@ app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 def get_calendar():
     conn = get_db()
     data = {}
-    for row in conn.execute("SELECT date, todos, note FROM calendar_data"):
-        data[row["date"]] = {"todos": json.loads(row["todos"]), "pics": [], "note": row["note"]}
+    for row in conn.execute("SELECT date, todos, note, diet, monitor, exercises FROM calendar_data"):
+        data[row["date"]] = {
+            "todos": json.loads(row["todos"]),
+            "pics": [],
+            "note": row["note"],
+            "diet": json.loads(row["diet"] or "{}"),
+            "monitor": json.loads(row["monitor"] or "{}"),
+            "exercises": json.loads(row["exercises"] or "{}"),
+        }
     for row in conn.execute("SELECT id, filename, original_name, strftime('%Y-%m-%d', created_at) as d FROM gallery"):
         d = row["d"]
         if d not in data:
@@ -88,11 +98,14 @@ async def save_calendar(date_str: str, request: Request):
     body = await request.json()
     todos = json.dumps(body.get("todos", []))
     note = body.get("note", "")
+    diet = json.dumps(body.get("diet", {}))
+    monitor = json.dumps(body.get("monitor", {}))
+    exercises = json.dumps(body.get("exercises", {}))
     conn = get_db()
     conn.execute(
-        "INSERT INTO calendar_data (date, todos, note) VALUES (?, ?, ?) "
-        "ON CONFLICT(date) DO UPDATE SET todos=excluded.todos, note=excluded.note",
-        (date_str, todos, note),
+        "INSERT INTO calendar_data (date, todos, note, diet, monitor, exercises) VALUES (?, ?, ?, ?, ?, ?) "
+        "ON CONFLICT(date) DO UPDATE SET todos=excluded.todos, note=excluded.note, diet=excluded.diet, monitor=excluded.monitor, exercises=excluded.exercises",
+        (date_str, todos, note, diet, monitor, exercises),
     )
     conn.commit()
     conn.close()
@@ -195,7 +208,7 @@ def search(q: str = ""):
     conn = get_db()
     calendar = [
         {"date": r["date"], "note": r["note"], "todos": json.loads(r["todos"])}
-        for r in conn.execute("SELECT date, todos, note FROM calendar_data WHERE note LIKE ? OR todos LIKE ?", (like, like))
+        for r in conn.execute("SELECT date, todos, note FROM calendar_data WHERE note LIKE ? OR todos LIKE ? OR diet LIKE ?", (like, like, like))
     ]
     gallery = [
         {"id": r["id"], "url": f"/uploads/{r['filename']}", "name": r["original_name"], "date": r["created_at"]}

@@ -1,6 +1,7 @@
+import DietSection from './DietSection'
+import MonitorSection from './MonitorSection'
+import ExerciseSection from './ExerciseSection'
 import TodoSection from './TodoSection'
-import PicsSection from './PicsSection'
-import NotesSection from './NotesSection'
 
 export default function DayPanel({ dateKey, title, dayData, onUpdate, onClose }) {
   if (!dateKey) return null
@@ -16,9 +17,10 @@ export default function DayPanel({ dateKey, title, dayData, onUpdate, onClose })
           </button>
         </div>
         <div className="p-5 space-y-6">
+          <DietSection diet={dayData.diet || {}} onUpdate={diet => onUpdate(d => ({ ...d, diet }))} />
+          <MonitorSection monitor={dayData.monitor || {}} onUpdate={monitor => onUpdate(d => ({ ...d, monitor }))} />
+          <ExerciseSection exercises={dayData.exercises || {}} onUpdate={exercises => onUpdate(d => ({ ...d, exercises }))} />
           <TodoSection todos={dayData.todos} onUpdate={todos => onUpdate(d => ({ ...d, todos }))} />
-          <PicsSection pics={dayData.pics} onUpdate={pics => onUpdate(d => ({ ...d, pics }))} />
-          <NotesSection note={dayData.note} onUpdate={note => onUpdate(d => ({ ...d, note }))} />
         </div>
       </aside>
     </div>

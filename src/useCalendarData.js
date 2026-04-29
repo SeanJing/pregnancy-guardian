@@ -6,11 +6,11 @@ export function useCalendarData() {
 
   useEffect(() => { api.getCalendar().then(setData) }, [])
 
-  const getDayData = useCallback((key) => data[key] || { todos: [], pics: [], note: '' }, [data])
+  const getDayData = useCallback((key) => data[key] || { todos: [], pics: [], note: '', diet: {}, monitor: {}, exercises: {} }, [data])
 
   const setDayData = useCallback((key, updater) => {
     setData(prev => {
-      const current = prev[key] || { todos: [], pics: [], note: '' }
+      const current = prev[key] || { todos: [], pics: [], note: '', diet: {}, monitor: {}, exercises: {} }
       const next = typeof updater === 'function' ? updater(current) : updater
       api.saveDay(key, next)
       return { ...prev, [key]: next }
