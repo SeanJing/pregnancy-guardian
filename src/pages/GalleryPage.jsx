@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { api } from '../api'
+import { api, UPLOADS_BASE } from '../api'
 
 export default function GalleryPage() {
   const [photos, setPhotos] = useState([])
@@ -42,7 +42,7 @@ export default function GalleryPage() {
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1">
             {photos.map((p, i) => (
               <button key={p.id} onClick={() => setViewing(i)} className="aspect-square overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity duration-150">
-                <img src={p.url} alt={p.name} className="w-full h-full object-cover" />
+                <img src={UPLOADS_BASE + p.url} alt={p.name} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
@@ -57,7 +57,7 @@ export default function GalleryPage() {
             <button onClick={() => remove(viewing)} className="text-red-400 hover:text-red-300 text-sm font-medium cursor-pointer transition-colors duration-150">Delete</button>
           </div>
           <div className="flex-1 flex items-center justify-center p-4">
-            <img src={photos[viewing].url} alt={photos[viewing].name} className="max-w-full max-h-full object-contain" />
+            <img src={UPLOADS_BASE + photos[viewing].url} alt={photos[viewing].name} className="max-w-full max-h-full object-contain" />
           </div>
         </div>
       )}

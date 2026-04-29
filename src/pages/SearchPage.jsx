@@ -68,7 +68,7 @@ export default function SearchPage() {
             <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
               {results.gallery.map(p => (
                 <div key={p.id} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                  <img src={p.url} alt={p.name} className="w-full h-full object-cover" />
+                  <img src={UPLOADS_BASE + p.url} alt={p.name} className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>

@@ -1,4 +1,5 @@
 const BASE = import.meta.env.VITE_API_URL || '/api'
+export const UPLOADS_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : ''
 
 async function json(url, opts) {
   const res = await fetch(BASE + url, opts)
