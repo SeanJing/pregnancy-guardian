@@ -7,7 +7,7 @@ export default function DayPanel({ dateKey, title, dayData, onUpdate, onClose })
   if (!dateKey) return null
 
   return (
-    <aside className="w-[40rem] shrink-0 border-l border-gray-200 bg-white overflow-y-auto transition-all duration-500 ease-in-out">
+    <aside className="w-[40rem] shrink-0 border-l border-gray-200 bg-white overflow-y-auto transition-all duration-700 ease-in-out">
       <div className="sticky top-0 bg-white z-10 px-5 py-4 flex items-center justify-between border-b border-gray-200">
         <h2 className="text-lg font-semibold font-heading">{title}</h2>
         <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors duration-150 active:scale-95" aria-label="Close">
