@@ -4,11 +4,11 @@ compatibility_date = "2024-01-01"
 
 # D1 Database (SQLite)
 [[d1_databases]]
-binding = "pg_database"
+binding = "DB"
 database_name = "pg-database"
 database_id = "04b2cae5-425f-4352-b017-a6de63c67c75"
 
 # R2 Bucket (file storage)
 [[r2_buckets]]
-binding = "pg_uploads"
+binding = "BUCKET"
 bucket_name = "pg-uploads"
