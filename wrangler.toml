@@ -1,0 +1,14 @@
+name = "pregnancy-guardian-api"
+main = "worker/index.js"
+compatibility_date = "2024-01-01"
+
+# D1 Database (SQLite)
+[[d1_databases]]
+binding = "DB"
+database_name = "pg-database"
+database_id = "YOUR_D1_DATABASE_ID"
+
+# R2 Bucket (file storage)
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "pg-uploads"
