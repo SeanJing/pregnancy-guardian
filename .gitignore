@@ -26,3 +26,8 @@ dist-ssr
 # Server runtime data
 server/pg.sqlite
 server/uploads/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
