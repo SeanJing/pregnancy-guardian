@@ -1,8 +1,8 @@
 const TOTAL_WEEKS = 40
 const TRIMESTERS = [
-  { name: '1st Trimester', weeks: [1, 13] },
-  { name: '2nd Trimester', weeks: [14, 27] },
-  { name: '3rd Trimester', weeks: [28, 40] },
+  { name: '1st Trimester', weeks: [1, 13], color: 'bg-pink-300' },
+  { name: '2nd Trimester', weeks: [14, 27], color: 'bg-amber-300' },
+  { name: '3rd Trimester', weeks: [28, 40], color: 'bg-purple-300' },
 ]
 
 const MESSAGES = {
@@ -52,11 +52,11 @@ export default function WeekTracker({ dueDate }) {
       {/* Progress bar */}
       <div>
         <div className="h-2.5 bg-secondary/60 rounded-full overflow-hidden">
-          <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+          <div className={`h-full ${trimester.color} rounded-full transition-all duration-500`} style={{ width: `${progress}%` }} />
         </div>
         <div className="flex justify-between mt-1.5 text-xs text-ink/40">
           <span>Week 1</span>
-          <span>{trimester.name}</span>
+          <span className={`px-2 py-0.5 rounded-full text-xs ${trimester.color} text-ink/70`}>{trimester.name}</span>
           <span>Week 40</span>
         </div>
       </div>
