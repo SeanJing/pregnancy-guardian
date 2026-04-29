@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview"
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "archiver": "^7.0.1",
@@ -23,6 +24,7 @@
     "sql.js": "^1.14.1"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.34.0",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.2.4",
     "@types/react": "^19.2.14",
@@ -35,6 +37,7 @@
     "supertest": "^7.2.2",
     "tailwindcss": "^4.2.4",
     "vite": "^8.0.10",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.5",
+    "wrangler": "^4.86.0"
   }
 }
