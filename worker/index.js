@@ -4,8 +4,10 @@ import { cors } from 'hono/cors'
 const app = new Hono()
 app.use('*', cors())
 
-// --- Init DB schema ---
+// --- Init DB schema on every request ---
+let dbInitialized = false
 async function initDB(db) {
+  if (dbInitialized) return
   await db.exec(`
     CREATE TABLE IF NOT EXISTS calendar_data (
       date TEXT PRIMARY KEY, todos TEXT DEFAULT '[]', note TEXT DEFAULT '',
@@ -24,12 +26,17 @@ async function initDB(db) {
       key TEXT PRIMARY KEY, value TEXT NOT NULL
     );
   `)
+  dbInitialized = true
 }
+
+app.use('/api/*', async (c, next) => {
+  await initDB(c.env.DB)
+  await next()
+})
 
 // --- Calendar ---
 app.get('/api/calendar', async (c) => {
   const db = c.env.DB
-  await initDB(db)
   const data = {}
   const rows = await db.prepare('SELECT date, todos, note, diet, monitor, exercises FROM calendar_data').all()
   for (const r of rows.results) {
