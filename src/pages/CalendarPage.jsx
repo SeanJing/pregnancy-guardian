@@ -1,13 +1,37 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import CalendarGrid from '../components/CalendarGrid'
 import DayPanel from '../components/DayPanel'
 import { useCalendarData } from '../useCalendarData'
+import { api } from '../api'
+
+const TRIMESTER_COLORS = {
+  1: 'bg-pink-50 border-pink-200',
+  2: 'bg-amber-50 border-amber-200',
+  3: 'bg-purple-50 border-purple-200',
+}
+
+function getTrimester(dueDate, year, month) {
+  if (!dueDate) return null
+  const due = new Date(dueDate + 'T00:00:00')
+  const conception = new Date(due)
+  conception.setDate(conception.getDate() - 280)
+  const midMonth = new Date(year, month, 15)
+  const daysPregnant = Math.floor((midMonth - conception) / 86400000)
+  const week = Math.floor(daysPregnant / 7) + 1
+  if (week < 1 || week > 40) return null
+  if (week <= 13) return 1
+  if (week <= 27) return 2
+  return 3
+}
 
 export default function CalendarPage() {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
   const [activeKey, setActiveKey] = useState(null)
+  const [dueDate, setDueDate] = useState(null)
+
+  useEffect(() => { api.getSettings().then(s => setDueDate(s.dueDate || null)) }, [])
   const [activeTitle, setActiveTitle] = useState('')
   const { data, getDayData, setDayData, refreshDay } = useCalendarData()
 
@@ -42,8 +66,8 @@ export default function CalendarPage() {
         </div>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out">
-          <CalendarGrid year={year} month={month} data={data} onDayClick={openDay} />
+        <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out rounded-xl m-2 border ${TRIMESTER_COLORS[getTrimester(dueDate, year, month)] || 'bg-surface border-transparent'}`}>
+          <CalendarGrid year={year} month={month} data={data} onDayClick={openDay} trimester={getTrimester(dueDate, year, month)} />
         </div>
         <DayPanel isOpen={!!activeKey} title={activeTitle} dayData={getDayData(activeKey || '')} onUpdate={(updater) => setDayData(activeKey, updater)} onClose={() => setActiveKey(null)} />
       </div>
