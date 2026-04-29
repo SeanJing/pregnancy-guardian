@@ -25,7 +25,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <>
+    <div className="flex flex-col h-screen">
       <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur px-4 md:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-ink font-heading">Calendar</h2>
@@ -40,12 +40,14 @@ export default function CalendarPage() {
           </div>
         </div>
       </header>
-      <div className="px-4 md:px-6 lg:px-8 pb-8">
-        <CalendarGrid year={year} month={month} data={data} onDayClick={openDay} />
+      <div className="flex flex-1 overflow-hidden">
+        <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-200 ${activeKey ? 'pr-0' : ''}`}>
+          <CalendarGrid year={year} month={month} data={data} onDayClick={openDay} />
+        </div>
+        {activeKey && (
+          <DayPanel dateKey={activeKey} title={activeTitle} dayData={getDayData(activeKey)} onUpdate={(updater) => setDayData(activeKey, updater)} onClose={() => setActiveKey(null)} />
+        )}
       </div>
-      {activeKey && (
-        <DayPanel dateKey={activeKey} title={activeTitle} dayData={getDayData(activeKey)} onUpdate={(updater) => setDayData(activeKey, updater)} onClose={() => setActiveKey(null)} />
-      )}
-    </>
+    </div>
   )
 }
