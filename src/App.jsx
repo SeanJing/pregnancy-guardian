@@ -10,12 +10,14 @@ const PAGES = { calendar: CalendarPage, gallery: GalleryPage, documents: Documen
 
 export default function App() {
   const [page, setPage] = useState('home')
-  const [entered, setEntered] = useState(false)
+  const [visited, setVisited] = useState({})
 
   const navigate = (p) => {
     setPage(p)
-    if (p !== 'home') setEntered(true)
+    if (p !== 'home') setVisited(prev => ({ ...prev, [p]: true }))
   }
+
+  const hasVisited = Object.keys(visited).length > 0
 
   return (
     <div className="bg-surface text-ink font-sans min-h-screen">
@@ -25,14 +27,14 @@ export default function App() {
       </div>
 
       {/* App shell - rendered once after first navigation, never unmounted */}
-      {entered && (
+      {hasVisited && (
         <div className={`flex min-h-screen ${page === 'home' ? 'hidden' : ''}`}>
           <Sidebar active={page} onChange={navigate} onHome={() => navigate('home')} />
           <main className="flex-1 min-w-0 overflow-y-auto">
-            <div className={page === 'calendar' ? '' : 'hidden'}><CalendarPage /></div>
-            <div className={page === 'gallery' ? '' : 'hidden'}><GalleryPage /></div>
-            <div className={page === 'documents' ? '' : 'hidden'}><DocumentsPage /></div>
-            <div className={page === 'search' ? '' : 'hidden'}><SearchPage /></div>
+            {visited.calendar && <div className={page === 'calendar' ? '' : 'hidden'}><CalendarPage /></div>}
+            {visited.gallery && <div className={page === 'gallery' ? '' : 'hidden'}><GalleryPage /></div>}
+            {visited.documents && <div className={page === 'documents' ? '' : 'hidden'}><DocumentsPage /></div>}
+            {visited.search && <div className={page === 'search' ? '' : 'hidden'}><SearchPage /></div>}
           </main>
         </div>
       )}
