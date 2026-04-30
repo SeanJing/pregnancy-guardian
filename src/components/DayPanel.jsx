@@ -4,6 +4,9 @@ import ExerciseSection from './ExerciseSection'
 import TodoSection from './TodoSection'
 
 export default function DayPanel({ isOpen, dateKey, title, dayData, onRefresh, onClose }) {
+  // Use a version key so sections remount when data loads
+  const version = JSON.stringify(dayData)
+
   return (
     <aside className={`shrink-0 border-l border-gray-200 bg-white overflow-hidden transition-all duration-1000 ease-in-out ${isOpen ? 'w-[40rem]' : 'w-0 border-l-0'}`}>
       <div className="w-[40rem] h-full overflow-y-auto">
@@ -13,7 +16,7 @@ export default function DayPanel({ isOpen, dateKey, title, dayData, onRefresh, o
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
-        <div className="p-5 space-y-6">
+        <div key={version} className="p-5 space-y-6">
           <DietSection diet={dayData.diet || {}} date={dateKey} onRefresh={onRefresh} />
           <MonitorSection monitor={dayData.monitor || {}} date={dateKey} onRefresh={onRefresh} />
           <ExerciseSection exercises={dayData.exercises || []} date={dateKey} onRefresh={onRefresh} />

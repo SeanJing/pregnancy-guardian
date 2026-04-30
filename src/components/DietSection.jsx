@@ -6,13 +6,6 @@ const LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 
 export default function DietSection({ diet, date, onRefresh }) {
   const [local, setLocal] = useState(diet)
-
-  // Sync when props change (e.g., after refreshDay)
-  const prevDiet = useRef(diet)
-  if (diet !== prevDiet.current) {
-    prevDiet.current = diet
-    setLocal(diet)
-  }
   const timers = useRef({})
 
   // Update local state immediately, debounce API save
