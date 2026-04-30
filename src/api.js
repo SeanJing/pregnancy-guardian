@@ -6,6 +6,7 @@ const cache = {}
 
 async function json(url, opts) {
   const res = await fetch(BASE + url, opts)
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
   return res.json()
 }
 
