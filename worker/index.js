@@ -4,9 +4,7 @@ import { cors } from 'hono/cors'
 const app = new Hono()
 app.use('*', cors())
 
-let dbInitialized = false
 async function initDB(db) {
-  if (dbInitialized) return
   await db.exec("CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, text TEXT NOT NULL, done INTEGER DEFAULT 0);")
   await db.exec("CREATE TABLE IF NOT EXISTS diet (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, meal TEXT NOT NULL, name TEXT DEFAULT '', instructions TEXT DEFAULT '');")
   await db.exec("CREATE TABLE IF NOT EXISTS monitor (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, metric TEXT NOT NULL, value TEXT NOT NULL);")
@@ -14,7 +12,6 @@ async function initDB(db) {
   await db.exec("CREATE TABLE IF NOT EXISTS gallery (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')));")
   await db.exec("CREATE TABLE IF NOT EXISTS documents (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, size INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')));")
   await db.exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);")
-  dbInitialized = true
 }
 
 app.use('/api/*', async (c, next) => {
