@@ -38,10 +38,10 @@ export const api = {
   deleteTodo: (id) => { invalidate('/calendar'); return json(`/todos/${id}`, { method: 'DELETE' }) },
 
   // Diet
-  saveDiet: (date, meal, data) => json(`/diet/${date}/${meal}`, jsonBody(data)),
+  saveDiet: (date, meal, data) => { invalidate('/calendar'); return json(`/diet/${date}/${meal}`, jsonBody(data)) },
 
   // Monitor
-  saveMonitor: (date, metric, value) => json(`/monitor/${date}/${metric}`, jsonBody({ value })),
+  saveMonitor: (date, metric, value) => { invalidate('/calendar'); return json(`/monitor/${date}/${metric}`, jsonBody({ value })) },
 
   // Exercises
   createExercise: (data) => { invalidate('/calendar'); return json('/exercises', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }) },
