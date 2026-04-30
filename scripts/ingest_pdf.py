@@ -77,20 +77,38 @@ def ingest(chunks, api_url):
             print(f'  Batch {batch_num}: ✗ {result}')
 
 def main():
-    if len(sys.argv) < 3:
-        print('Usage: python3.12 scripts/ingest_pdf.py <PDF_PATH> <WORKER_URL>')
+    if len(sys.argv) < 2:
+        print('Usage: python3.12 scripts/ingest_pdf.py <PDF_PATH> <WORKER_URL> [--dry-run] [--chunk-size N]')
         sys.exit(1)
 
     pdf_path = sys.argv[1]
-    api_url = sys.argv[2].rstrip('/')
+    args = sys.argv[2:]
+    dry_run = '--dry-run' in args
+    chunk_size = CHUNK_SIZE
+    if '--chunk-size' in args:
+        chunk_size = int(args[args.index('--chunk-size') + 1])
+
+    api_url = None
+    if not dry_run:
+        urls = [a for a in args if a.startswith('http')]
+        if not urls:
+            print('Error: provide WORKER_URL or use --dry-run')
+            sys.exit(1)
+        api_url = urls[0].rstrip('/')
 
     print(f'Extracting text from: {pdf_path}')
     pages = extract_text(pdf_path)
     print(f'  {len(pages)} pages extracted')
 
-    print('Chunking...')
-    chunks = chunk_text(pages)
-    print(f'  {len(chunks)} chunks created (size={CHUNK_SIZE}, overlap={CHUNK_OVERLAP})')
+    print(f'Chunking (size={chunk_size}, overlap={CHUNK_OVERLAP})...')
+    chunks = chunk_text(pages, chunk_size=chunk_size)
+    print(f'  {len(chunks)} chunks created')
+
+    if dry_run:
+        print(f'\n  Estimated API calls: {(len(chunks) + BATCH_SIZE - 1) // BATCH_SIZE}')
+        print(f'  Sample chunk ({len(chunks[0]["text"])} chars):')
+        print(f'    {chunks[0]["text"][:200]}...')
+        return
 
     print('Ingesting...')
     ingest(chunks, api_url)
