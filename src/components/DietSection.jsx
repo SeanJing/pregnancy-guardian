@@ -1,9 +1,14 @@
+import { api } from '../api'
+
 const MEALS = ['breakfast', 'lunch', 'dinner']
 const LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 
-export default function DietSection({ diet, onUpdate }) {
-  const update = (meal, field, value) => {
-    onUpdate({ ...diet, [meal]: { ...(diet[meal] || {}), [field]: value } })
+export default function DietSection({ diet, date, onRefresh }) {
+  const save = (meal, field, value) => {
+    const current = diet[meal] || {}
+    const updated = { ...current, [field]: value }
+    api.saveDiet(date, meal, { name: updated.name || '', instructions: updated.instructions || '' })
+      .then(onRefresh)
   }
 
   return (
@@ -17,14 +22,14 @@ export default function DietSection({ diet, onUpdate }) {
           <div key={meal} className="bg-surface/50 rounded-lg p-3">
             <p className="text-xs font-medium text-ink/50 mb-1.5">{LABELS[meal]}</p>
             <input
-              value={diet[meal]?.name || ''}
-              onChange={e => update(meal, 'name', e.target.value)}
+              defaultValue={diet[meal]?.name || ''}
+              onBlur={e => save(meal, 'name', e.target.value)}
               placeholder="Meal name"
               className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150 mb-1.5"
             />
             <input
-              value={diet[meal]?.instructions || ''}
-              onChange={e => update(meal, 'instructions', e.target.value)}
+              defaultValue={diet[meal]?.instructions || ''}
+              onBlur={e => save(meal, 'instructions', e.target.value)}
               placeholder="Instructions / notes"
               className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150"
             />

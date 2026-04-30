@@ -21,11 +21,11 @@ export default function CalendarGrid({ year, month, data, onDayClick }) {
         {Array.from({ length: daysInMonth }, (_, i) => {
           const d = i + 1
           const key = dayKey(year, month, d)
-          const dd = data[key] || { todos: [], pics: [], note: '', diet: {}, monitor: {}, exercises: {} }
+          const dd = data[key] || { todos: [], diet: {}, monitor: {}, exercises: [] }
           const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear()
           const hasDiet = Object.values(dd.diet || {}).some(m => m?.name)
-          const hasMonitor = Object.values(dd.monitor || {}).some(v => v)
-          const hasExercises = Object.values(dd.exercises || {}).some(v => v)
+          const hasMonitor = Object.keys(dd.monitor || {}).length > 0
+          const hasExercises = (dd.exercises || []).length > 0
           const hasContent = dd.todos.length > 0 || hasDiet || hasMonitor || hasExercises
 
           return (

@@ -1,3 +1,5 @@
+import { api } from '../api'
+
 const METRICS = [
   { key: 'weight', label: 'Weight (kg)', placeholder: 'e.g. 62.5' },
   { key: 'bloodPressure', label: 'Blood Pressure', placeholder: 'e.g. 120/80' },
@@ -5,8 +7,11 @@ const METRICS = [
   { key: 'bloodSugar', label: 'Blood Sugar (mmol/L)', placeholder: 'e.g. 5.2' },
 ]
 
-export default function MonitorSection({ monitor, onUpdate }) {
-  const update = (key, value) => onUpdate({ ...monitor, [key]: value })
+export default function MonitorSection({ monitor, date, onRefresh }) {
+  const save = (metric, value) => {
+    if (!value) return
+    api.saveMonitor(date, metric, value).then(onRefresh)
+  }
 
   return (
     <section>
@@ -19,8 +24,8 @@ export default function MonitorSection({ monitor, onUpdate }) {
           <div key={m.key}>
             <label className="text-xs text-ink/50 mb-0.5 block">{m.label}</label>
             <input
-              value={monitor[m.key] || ''}
-              onChange={e => update(m.key, e.target.value)}
+              defaultValue={monitor[m.key]?.value || ''}
+              onBlur={e => save(m.key, e.target.value)}
               placeholder={m.placeholder}
               className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150"
             />
