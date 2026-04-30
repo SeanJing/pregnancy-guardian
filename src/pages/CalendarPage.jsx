@@ -69,7 +69,7 @@ export default function CalendarPage() {
         <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out rounded-xl m-2 border ${TRIMESTER_COLORS[getTrimester(dueDate, year, month)] || 'bg-surface border-transparent'}`}>
           <CalendarGrid year={year} month={month} data={data} onDayClick={openDay} trimester={getTrimester(dueDate, year, month)} />
         </div>
-        <DayPanel isOpen={!!activeKey} title={activeTitle} dayData={getDayData(activeKey || '')} onUpdate={(updater) => setDayData(activeKey, updater)} onClose={() => setActiveKey(null)} />
+        <DayPanel isOpen={!!activeKey} dateKey={activeKey || ''} title={activeTitle} dayData={getDayData(activeKey || '')} onRefresh={() => refreshDay(activeKey)} onClose={() => setActiveKey(null)} />
       </div>
     </div>
   )

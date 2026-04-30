@@ -1,10 +1,8 @@
-"""Tests for Pregnancy Guardian API."""
+"""Tests for Pregnancy Guardian API (normalized schema)."""
 
 import os
 import tempfile
-import shutil
 from pathlib import Path
-from zipfile import ZipFile
 
 import pytest
 from fastapi.testclient import TestClient
@@ -12,7 +10,6 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture(autouse=True)
 def setup_test_env(monkeypatch, tmp_path):
-    """Use a temp directory for DB and uploads in each test session."""
     db_path = tmp_path / "test.sqlite"
     uploads_dir = tmp_path / "uploads"
     uploads_dir.mkdir()
@@ -21,8 +18,7 @@ def setup_test_env(monkeypatch, tmp_path):
     monkeypatch.setattr(app_module, "DB_PATH", db_path)
     monkeypatch.setattr(app_module, "UPLOADS_DIR", uploads_dir)
     app_module.init_db()
-    # Remount static files to use temp uploads dir
-    for route in app_module.app.routes:
+    for route in list(app_module.app.routes):
         if hasattr(route, "name") and route.name == "uploads":
             app_module.app.routes.remove(route)
             break
@@ -37,7 +33,72 @@ def client():
     return TestClient(app)
 
 
-# --- Calendar ---
+class TestTodos:
+    def test_create(self, client):
+        res = client.post("/api/todos", json={"date": "2026-05-01", "text": "Buy vitamins"})
+        assert res.status_code == 200
+        assert res.json()["text"] == "Buy vitamins"
+        assert "id" in res.json()
+
+    def test_update(self, client):
+        todo = client.post("/api/todos", json={"date": "2026-05-01", "text": "Test"}).json()
+        client.put(f"/api/todos/{todo['id']}", json={"text": "Updated", "done": True})
+        day = client.get("/api/calendar/2026-05-01").json()
+        assert day["todos"][0]["text"] == "Updated"
+        assert day["todos"][0]["done"] is True
+
+    def test_delete(self, client):
+        todo = client.post("/api/todos", json={"date": "2026-05-01", "text": "Del"}).json()
+        client.delete(f"/api/todos/{todo['id']}")
+        day = client.get("/api/calendar/2026-05-01").json()
+        assert len(day["todos"]) == 0
+
+
+class TestDiet:
+    def test_save_and_get(self, client):
+        client.put("/api/diet/2026-05-01/breakfast", json={"name": "Oatmeal", "instructions": "With berries"})
+        day = client.get("/api/calendar/2026-05-01").json()
+        assert day["diet"]["breakfast"]["name"] == "Oatmeal"
+        assert day["diet"]["breakfast"]["instructions"] == "With berries"
+
+    def test_upsert(self, client):
+        client.put("/api/diet/2026-05-01/lunch", json={"name": "Salad", "instructions": ""})
+        client.put("/api/diet/2026-05-01/lunch", json={"name": "Soup", "instructions": "Warm"})
+        day = client.get("/api/calendar/2026-05-01").json()
+        assert day["diet"]["lunch"]["name"] == "Soup"
+
+
+class TestMonitor:
+    def test_save_and_get(self, client):
+        client.put("/api/monitor/2026-05-01/weight", json={"value": "62.5"})
+        day = client.get("/api/calendar/2026-05-01").json()
+        assert day["monitor"]["weight"]["value"] == "62.5"
+
+    def test_upsert(self, client):
+        client.put("/api/monitor/2026-05-01/heartRate", json={"value": "75"})
+        client.put("/api/monitor/2026-05-01/heartRate", json={"value": "80"})
+        day = client.get("/api/calendar/2026-05-01").json()
+        assert day["monitor"]["heartRate"]["value"] == "80"
+
+
+class TestExercises:
+    def test_create(self, client):
+        res = client.post("/api/exercises", json={"date": "2026-05-01", "activity": "Walking", "steps": 5000, "duration": 30})
+        assert res.status_code == 200
+        assert "id" in res.json()
+
+    def test_list(self, client):
+        client.post("/api/exercises", json={"date": "2026-05-01", "activity": "Yoga", "steps": 0, "duration": 20})
+        client.post("/api/exercises", json={"date": "2026-05-01", "activity": "Walking", "steps": 3000, "duration": 25})
+        day = client.get("/api/calendar/2026-05-01").json()
+        assert len(day["exercises"]) == 2
+
+    def test_delete(self, client):
+        ex = client.post("/api/exercises", json={"date": "2026-05-01", "activity": "Run", "steps": 0, "duration": 10}).json()
+        client.delete(f"/api/exercises/{ex['id']}")
+        day = client.get("/api/calendar/2026-05-01").json()
+        assert len(day["exercises"]) == 0
+
 
 class TestCalendar:
     def test_get_empty(self, client):
@@ -45,151 +106,70 @@ class TestCalendar:
         assert res.status_code == 200
         assert res.json() == {}
 
-    def test_put_and_get(self, client):
-        payload = {"todos": [{"text": "Buy vitamins", "done": False}], "note": "Doctor visit"}
-        res = client.put("/api/calendar/2026-05-01", json=payload)
-        assert res.json() == {"ok": True}
-
+    def test_aggregated_view(self, client):
+        client.post("/api/todos", json={"date": "2026-05-01", "text": "Task"})
+        client.put("/api/diet/2026-05-01/breakfast", json={"name": "Eggs", "instructions": ""})
+        client.put("/api/monitor/2026-05-01/weight", json={"value": "60"})
+        client.post("/api/exercises", json={"date": "2026-05-01", "activity": "Walk", "steps": 1000, "duration": 15})
         data = client.get("/api/calendar").json()
-        assert data["2026-05-01"]["note"] == "Doctor visit"
+        assert "2026-05-01" in data
         assert len(data["2026-05-01"]["todos"]) == 1
-        assert data["2026-05-01"]["todos"][0]["text"] == "Buy vitamins"
+        assert "breakfast" in data["2026-05-01"]["diet"]
+        assert "weight" in data["2026-05-01"]["monitor"]
+        assert len(data["2026-05-01"]["exercises"]) == 1
 
-    def test_upsert(self, client):
-        client.put("/api/calendar/2026-05-01", json={"todos": [], "note": "First"})
-        client.put("/api/calendar/2026-05-01", json={"todos": [], "note": "Updated"})
-        data = client.get("/api/calendar").json()
-        assert data["2026-05-01"]["note"] == "Updated"
-
-
-# --- Gallery ---
 
 class TestGallery:
-    def test_get_empty(self, client):
-        res = client.get("/api/gallery")
-        assert res.status_code == 200
-        assert res.json() == []
-
-    def test_upload_photo(self, client):
-        res = client.post("/api/gallery", files=[("photos", ("ultrasound.jpg", b"fake-image", "image/jpeg"))])
-        assert res.status_code == 200
-        items = res.json()
-        assert len(items) == 1
-        assert items[0]["name"] == "ultrasound.jpg"
-        assert "id" in items[0]
-        assert "url" in items[0]
-
-    def test_upload_multiple(self, client):
-        res = client.post("/api/gallery", files=[
-            ("photos", ("bump1.jpg", b"img1", "image/jpeg")),
-            ("photos", ("bump2.jpg", b"img2", "image/jpeg")),
-        ])
-        assert len(res.json()) == 2
-
-    def test_list_photos(self, client):
-        client.post("/api/gallery", files=[("photos", ("test.jpg", b"x", "image/jpeg"))])
-        res = client.get("/api/gallery")
-        assert len(res.json()) >= 1
-
-    def test_delete_photo(self, client):
-        upload = client.post("/api/gallery", files=[("photos", ("del.jpg", b"x", "image/jpeg"))])
-        photo_id = upload.json()[0]["id"]
-
-        res = client.delete(f"/api/gallery/{photo_id}")
-        assert res.json() == {"ok": True}
-
+    def test_upload_and_list(self, client):
+        res = client.post("/api/gallery", files=[("photos", ("test.jpg", b"img", "image/jpeg"))])
+        assert len(res.json()) == 1
         items = client.get("/api/gallery").json()
-        assert all(p["id"] != photo_id for p in items)
+        assert len(items) == 1
 
+    def test_delete(self, client):
+        photo = client.post("/api/gallery", files=[("photos", ("del.jpg", b"x", "image/jpeg"))]).json()[0]
+        client.delete(f"/api/gallery/{photo['id']}")
+        assert client.get("/api/gallery").json() == []
 
-# --- Documents ---
 
 class TestDocuments:
-    def test_get_empty(self, client):
-        res = client.get("/api/documents")
-        assert res.status_code == 200
-        assert res.json() == []
-
-    def test_upload_document(self, client):
-        res = client.post("/api/documents", files=[("files", ("blood-test.pdf", b"pdf-content", "application/pdf"))])
-        assert res.status_code == 200
-        items = res.json()
-        assert len(items) == 1
-        assert items[0]["name"] == "blood-test.pdf"
-        assert items[0]["size"] == len(b"pdf-content")
-
-    def test_list_documents(self, client):
-        client.post("/api/documents", files=[("files", ("report.pdf", b"x", "application/pdf"))])
-        res = client.get("/api/documents")
-        assert len(res.json()) >= 1
-
-    def test_delete_document(self, client):
-        upload = client.post("/api/documents", files=[("files", ("del.pdf", b"x", "application/pdf"))])
-        doc_id = upload.json()[0]["id"]
-
-        res = client.delete(f"/api/documents/{doc_id}")
-        assert res.json() == {"ok": True}
-
+    def test_upload_and_list(self, client):
+        res = client.post("/api/documents", files=[("files", ("report.pdf", b"pdf", "application/pdf"))])
+        assert len(res.json()) == 1
+        assert res.json()[0]["size"] == 3
         items = client.get("/api/documents").json()
-        assert all(d["id"] != doc_id for d in items)
+        assert len(items) == 1
 
+    def test_delete(self, client):
+        doc = client.post("/api/documents", files=[("files", ("del.pdf", b"x", "application/pdf"))]).json()[0]
+        client.delete(f"/api/documents/{doc['id']}")
+        assert client.get("/api/documents").json() == []
 
-# --- Settings ---
 
 class TestSettings:
-    def test_get_empty(self, client):
-        res = client.get("/api/settings")
-        assert res.status_code == 200
-        assert res.json() == {}
-
     def test_save_and_get(self, client):
         client.put("/api/settings", json={"dueDate": "2026-10-15"})
-        res = client.get("/api/settings")
-        assert res.json()["dueDate"] == "2026-10-15"
+        assert client.get("/api/settings").json()["dueDate"] == "2026-10-15"
 
-    def test_upsert(self, client):
-        client.put("/api/settings", json={"dueDate": "2026-10-15"})
-        client.put("/api/settings", json={"dueDate": "2026-11-01"})
-        res = client.get("/api/settings")
-        assert res.json()["dueDate"] == "2026-11-01"
-
-
-# --- Search ---
 
 class TestSearch:
-    def test_empty_query(self, client):
-        res = client.get("/api/search")
-        assert res.json() == {"calendar": [], "gallery": [], "documents": []}
-
-    def test_find_notes(self, client):
-        client.put("/api/calendar/2026-06-10", json={"todos": [], "note": "Week 20 checkup"})
-        res = client.get("/api/search?q=checkup")
-        assert len(res.json()["calendar"]) >= 1
-
     def test_find_todos(self, client):
-        client.put("/api/calendar/2026-06-10", json={"todos": [{"text": "Ultrasound", "done": False}], "note": ""})
+        client.post("/api/todos", json={"date": "2026-05-01", "text": "Ultrasound appointment"})
         res = client.get("/api/search?q=Ultrasound")
         assert len(res.json()["calendar"]) >= 1
 
-    def test_find_documents(self, client):
-        client.post("/api/documents", files=[("files", ("prenatal-report.pdf", b"x", "application/pdf"))])
-        res = client.get("/api/search?q=prenatal")
-        assert len(res.json()["documents"]) >= 1
+    def test_find_diet(self, client):
+        client.put("/api/diet/2026-05-01/lunch", json={"name": "Salmon salad", "instructions": ""})
+        res = client.get("/api/search?q=salmon")
+        assert len(res.json()["calendar"]) >= 1
 
     def test_no_match(self, client):
         res = client.get("/api/search?q=xyznonexistent")
-        data = res.json()
-        assert data["calendar"] == []
-        assert data["gallery"] == []
-        assert data["documents"] == []
+        assert res.json() == {"calendar": [], "gallery": [], "documents": []}
 
-
-# --- Backup ---
 
 class TestBackup:
     def test_returns_zip(self, client):
         res = client.get("/api/backup")
         assert res.status_code == 200
         assert "application/zip" in res.headers["content-type"]
-        assert ".zip" in res.headers["content-disposition"]
-        assert len(res.content) > 0

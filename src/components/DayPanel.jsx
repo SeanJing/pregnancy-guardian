@@ -3,7 +3,7 @@ import MonitorSection from './MonitorSection'
 import ExerciseSection from './ExerciseSection'
 import TodoSection from './TodoSection'
 
-export default function DayPanel({ isOpen, title, dayData, onUpdate, onClose }) {
+export default function DayPanel({ isOpen, dateKey, title, dayData, onRefresh, onClose }) {
   return (
     <aside className={`shrink-0 border-l border-gray-200 bg-white overflow-hidden transition-all duration-1000 ease-in-out ${isOpen ? 'w-[40rem]' : 'w-0 border-l-0'}`}>
       <div className="w-[40rem] h-full overflow-y-auto">
@@ -14,10 +14,10 @@ export default function DayPanel({ isOpen, title, dayData, onUpdate, onClose }) 
           </button>
         </div>
         <div className="p-5 space-y-6">
-          <DietSection diet={dayData.diet || {}} onUpdate={diet => onUpdate(d => ({ ...d, diet }))} />
-          <MonitorSection monitor={dayData.monitor || {}} onUpdate={monitor => onUpdate(d => ({ ...d, monitor }))} />
-          <ExerciseSection exercises={dayData.exercises || {}} onUpdate={exercises => onUpdate(d => ({ ...d, exercises }))} />
-          <TodoSection todos={dayData.todos || []} onUpdate={todos => onUpdate(d => ({ ...d, todos }))} />
+          <DietSection diet={dayData.diet || {}} date={dateKey} onRefresh={onRefresh} />
+          <MonitorSection monitor={dayData.monitor || {}} date={dateKey} onRefresh={onRefresh} />
+          <ExerciseSection exercises={dayData.exercises || []} date={dateKey} onRefresh={onRefresh} />
+          <TodoSection todos={dayData.todos || []} date={dateKey} onRefresh={onRefresh} />
         </div>
       </div>
     </aside>

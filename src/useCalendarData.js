@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from './api'
 
-const EMPTY = { todos: [], pics: [], note: '', diet: {}, monitor: {}, exercises: {} }
+const EMPTY = { todos: [], diet: {}, monitor: {}, exercises: [] }
 
 export function useCalendarData() {
   const [data, setData] = useState({})
@@ -16,14 +16,5 @@ export function useCalendarData() {
     setData(prev => ({ ...prev, [key]: fresh }))
   }, [])
 
-  const setDayData = useCallback((key, updater) => {
-    setData(prev => {
-      const current = prev[key] || EMPTY
-      const next = typeof updater === 'function' ? updater(current) : updater
-      api.saveDay(key, next)
-      return { ...prev, [key]: next }
-    })
-  }, [])
-
-  return { data, getDayData, setDayData, refreshDay }
+  return { data, getDayData, refreshDay }
 }
