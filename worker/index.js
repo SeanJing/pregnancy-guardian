@@ -84,13 +84,12 @@ app.put('/api/diet/:date/:meal', async (c) => {
   const db = c.env.DB
   const date = c.req.param('date')
   const meal = c.req.param('meal')
-  const { name, instructions } = await c.req.json()
-  const existing = await db.prepare('SELECT id FROM diet WHERE date=? AND meal=?').bind(date, meal).first()
-  if (existing) {
-    await db.prepare('UPDATE diet SET name=?, instructions=? WHERE id=?').bind(name || '', instructions || '', existing.id).run()
-  } else {
-    await db.prepare('INSERT INTO diet (date, meal, name, instructions) VALUES (?, ?, ?, ?)').bind(date, meal, name || '', instructions || '').run()
-  }
+  const body = await c.req.json()
+  const name = body.name || ''
+  const instructions = body.instructions || ''
+  // Delete + insert as upsert (D1 doesn't support ON CONFLICT with multiple columns reliably)
+  await db.prepare('DELETE FROM diet WHERE date=? AND meal=?').bind(date, meal).run()
+  await db.prepare('INSERT INTO diet (date, meal, name, instructions) VALUES (?, ?, ?, ?)').bind(date, meal, name, instructions).run()
   return c.json({ ok: true })
 })
 
@@ -99,13 +98,10 @@ app.put('/api/monitor/:date/:metric', async (c) => {
   const db = c.env.DB
   const date = c.req.param('date')
   const metric = c.req.param('metric')
-  const { value } = await c.req.json()
-  const existing = await db.prepare('SELECT id FROM monitor WHERE date=? AND metric=?').bind(date, metric).first()
-  if (existing) {
-    await db.prepare('UPDATE monitor SET value=? WHERE id=?').bind(value, existing.id).run()
-  } else {
-    await db.prepare('INSERT INTO monitor (date, metric, value) VALUES (?, ?, ?)').bind(date, metric, value).run()
-  }
+  const body = await c.req.json()
+  const value = body.value || ''
+  await db.prepare('DELETE FROM monitor WHERE date=? AND metric=?').bind(date, metric).run()
+  await db.prepare('INSERT INTO monitor (date, metric, value) VALUES (?, ?, ?)').bind(date, metric, value).run()
   return c.json({ ok: true })
 })
 
