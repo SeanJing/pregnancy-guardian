@@ -264,9 +264,9 @@ app.post('/api/ask', async (c) => {
   if (!context) return c.json({ answer: "I don't have enough information to answer that question." })
 
   // Ask LLM
-  const response = await c.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+  const response = await c.env.AI.run('@cf/qwen/qwen1.5-14b-chat-awq', {
     messages: [
-      { role: 'system', content: `You are a helpful pregnancy health assistant. Answer the question based ONLY on the following knowledge. If the answer is not in the knowledge, say so. Be concise and caring.\n\nKnowledge:\n${context}` },
+      { role: 'system', content: `你是一位专业的孕期健康助手。请根据以下知识库内容回答问题。如果知识库中没有相关信息，请如实说明。回答要简洁、温暖、专业。\n\n知识库内容:\n${context}` },
       { role: 'user', content: question }
     ]
   })

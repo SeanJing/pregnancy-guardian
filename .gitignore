@@ -31,3 +31,4 @@ server/uploads/
 __pycache__/
 *.pyc
 .pytest_cache/
+src/data/*.pdf
