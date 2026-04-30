@@ -4,11 +4,13 @@ import { cors } from 'hono/cors'
 const app = new Hono()
 app.use('*', cors())
 
-// --- Init DB schema on every request ---
 let dbInitialized = false
 async function initDB(db) {
   if (dbInitialized) return
-  await db.exec("CREATE TABLE IF NOT EXISTS calendar_data (date TEXT PRIMARY KEY, todos TEXT DEFAULT '[]', note TEXT DEFAULT '', diet TEXT DEFAULT '{}', monitor TEXT DEFAULT '{}', exercises TEXT DEFAULT '{}');")
+  await db.exec("CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, text TEXT NOT NULL, done INTEGER DEFAULT 0);")
+  await db.exec("CREATE TABLE IF NOT EXISTS diet (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, meal TEXT NOT NULL, name TEXT DEFAULT '', instructions TEXT DEFAULT '');")
+  await db.exec("CREATE TABLE IF NOT EXISTS monitor (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, metric TEXT NOT NULL, value TEXT NOT NULL);")
+  await db.exec("CREATE TABLE IF NOT EXISTS exercises (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, activity TEXT DEFAULT '', steps INTEGER DEFAULT 0, duration INTEGER DEFAULT 0);")
   await db.exec("CREATE TABLE IF NOT EXISTS gallery (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')));")
   await db.exec("CREATE TABLE IF NOT EXISTS documents (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, size INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')));")
   await db.exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);")
@@ -20,18 +22,23 @@ app.use('/api/*', async (c, next) => {
   await next()
 })
 
-// --- Calendar ---
+// --- Calendar (aggregated) ---
 app.get('/api/calendar', async (c) => {
   const db = c.env.DB
   const data = {}
-  const rows = await db.prepare('SELECT date, todos, note, diet, monitor, exercises FROM calendar_data').all()
-  for (const r of rows.results) {
-    data[r.date] = { todos: JSON.parse(r.todos), pics: [], note: r.note, diet: JSON.parse(r.diet || '{}'), monitor: JSON.parse(r.monitor || '{}'), exercises: JSON.parse(r.exercises || '{}') }
+  const ensure = (d) => { if (!data[d]) data[d] = { todos: [], diet: {}, monitor: {}, exercises: [] } }
+
+  for (const r of (await db.prepare('SELECT id, date, text, done FROM todos ORDER BY id').all()).results) {
+    ensure(r.date); data[r.date].todos.push({ id: r.id, text: r.text, done: !!r.done })
   }
-  const pics = await db.prepare("SELECT id, filename, original_name, strftime('%Y-%m-%d', created_at) as d FROM gallery").all()
-  for (const r of pics.results) {
-    if (!data[r.d]) data[r.d] = { todos: [], pics: [], note: '', diet: {}, monitor: {}, exercises: {} }
-    data[r.d].pics.push({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name })
+  for (const r of (await db.prepare('SELECT id, date, meal, name, instructions FROM diet ORDER BY id').all()).results) {
+    ensure(r.date); data[r.date].diet[r.meal] = { id: r.id, name: r.name, instructions: r.instructions }
+  }
+  for (const r of (await db.prepare('SELECT id, date, metric, value FROM monitor ORDER BY id').all()).results) {
+    ensure(r.date); data[r.date].monitor[r.metric] = { id: r.id, value: r.value }
+  }
+  for (const r of (await db.prepare('SELECT id, date, activity, steps, duration FROM exercises ORDER BY id').all()).results) {
+    ensure(r.date); data[r.date].exercises.push({ id: r.id, activity: r.activity, steps: r.steps, duration: r.duration })
   }
   return c.json(data)
 })
@@ -39,37 +46,95 @@ app.get('/api/calendar', async (c) => {
 app.get('/api/calendar/:date', async (c) => {
   const db = c.env.DB
   const date = c.req.param('date')
-  const row = await db.prepare('SELECT todos, note, diet, monitor, exercises FROM calendar_data WHERE date = ?').bind(date).first()
-  const data = { todos: [], pics: [], note: '', diet: {}, monitor: {}, exercises: {} }
-  if (row) {
-    data.todos = JSON.parse(row.todos)
-    data.note = row.note
-    data.diet = JSON.parse(row.diet || '{}')
-    data.monitor = JSON.parse(row.monitor || '{}')
-    data.exercises = JSON.parse(row.exercises || '{}')
+  const data = { todos: [], diet: {}, monitor: {}, exercises: [] }
+  for (const r of (await db.prepare('SELECT id, text, done FROM todos WHERE date=? ORDER BY id').bind(date).all()).results) {
+    data.todos.push({ id: r.id, text: r.text, done: !!r.done })
   }
-  const pics = await db.prepare("SELECT id, filename, original_name FROM gallery WHERE strftime('%Y-%m-%d', created_at) = ?").bind(date).all()
-  for (const r of pics.results) {
-    data.pics.push({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name })
+  for (const r of (await db.prepare('SELECT id, meal, name, instructions FROM diet WHERE date=? ORDER BY id').bind(date).all()).results) {
+    data.diet[r.meal] = { id: r.id, name: r.name, instructions: r.instructions }
+  }
+  for (const r of (await db.prepare('SELECT id, metric, value FROM monitor WHERE date=? ORDER BY id').bind(date).all()).results) {
+    data.monitor[r.metric] = { id: r.id, value: r.value }
+  }
+  for (const r of (await db.prepare('SELECT id, activity, steps, duration FROM exercises WHERE date=? ORDER BY id').bind(date).all()).results) {
+    data.exercises.push({ id: r.id, activity: r.activity, steps: r.steps, duration: r.duration })
   }
   return c.json(data)
 })
 
-app.put('/api/calendar/:date', async (c) => {
+// --- Todos ---
+app.post('/api/todos', async (c) => {
+  const db = c.env.DB
+  const { date, text, done } = await c.req.json()
+  const res = await db.prepare('INSERT INTO todos (date, text, done) VALUES (?, ?, ?) RETURNING id').bind(date, text, done ? 1 : 0).first()
+  return c.json({ id: res.id, date, text, done: !!done })
+})
+
+app.put('/api/todos/:id', async (c) => {
+  const db = c.env.DB
+  const { text, done } = await c.req.json()
+  await db.prepare('UPDATE todos SET text=?, done=? WHERE id=?').bind(text, done ? 1 : 0, Number(c.req.param('id'))).run()
+  return c.json({ ok: true })
+})
+
+app.delete('/api/todos/:id', async (c) => {
+  await c.env.DB.prepare('DELETE FROM todos WHERE id=?').bind(Number(c.req.param('id'))).run()
+  return c.json({ ok: true })
+})
+
+// --- Diet ---
+app.put('/api/diet/:date/:meal', async (c) => {
   const db = c.env.DB
   const date = c.req.param('date')
-  const body = await c.req.json()
-  await db.prepare(
-    `INSERT INTO calendar_data (date, todos, note, diet, monitor, exercises) VALUES (?, ?, ?, ?, ?, ?)
-     ON CONFLICT(date) DO UPDATE SET todos=excluded.todos, note=excluded.note, diet=excluded.diet, monitor=excluded.monitor, exercises=excluded.exercises`
-  ).bind(date, JSON.stringify(body.todos || []), body.note || '', JSON.stringify(body.diet || {}), JSON.stringify(body.monitor || {}), JSON.stringify(body.exercises || {})).run()
+  const meal = c.req.param('meal')
+  const { name, instructions } = await c.req.json()
+  const existing = await db.prepare('SELECT id FROM diet WHERE date=? AND meal=?').bind(date, meal).first()
+  if (existing) {
+    await db.prepare('UPDATE diet SET name=?, instructions=? WHERE id=?').bind(name || '', instructions || '', existing.id).run()
+  } else {
+    await db.prepare('INSERT INTO diet (date, meal, name, instructions) VALUES (?, ?, ?, ?)').bind(date, meal, name || '', instructions || '').run()
+  }
+  return c.json({ ok: true })
+})
+
+// --- Monitor ---
+app.put('/api/monitor/:date/:metric', async (c) => {
+  const db = c.env.DB
+  const date = c.req.param('date')
+  const metric = c.req.param('metric')
+  const { value } = await c.req.json()
+  const existing = await db.prepare('SELECT id FROM monitor WHERE date=? AND metric=?').bind(date, metric).first()
+  if (existing) {
+    await db.prepare('UPDATE monitor SET value=? WHERE id=?').bind(value, existing.id).run()
+  } else {
+    await db.prepare('INSERT INTO monitor (date, metric, value) VALUES (?, ?, ?)').bind(date, metric, value).run()
+  }
+  return c.json({ ok: true })
+})
+
+// --- Exercises ---
+app.post('/api/exercises', async (c) => {
+  const db = c.env.DB
+  const { date, activity, steps, duration } = await c.req.json()
+  const res = await db.prepare('INSERT INTO exercises (date, activity, steps, duration) VALUES (?, ?, ?, ?) RETURNING id').bind(date, activity || '', steps || 0, duration || 0).first()
+  return c.json({ id: res.id, date, activity, steps, duration })
+})
+
+app.put('/api/exercises/:id', async (c) => {
+  const db = c.env.DB
+  const { activity, steps, duration } = await c.req.json()
+  await db.prepare('UPDATE exercises SET activity=?, steps=?, duration=? WHERE id=?').bind(activity || '', steps || 0, duration || 0, Number(c.req.param('id'))).run()
+  return c.json({ ok: true })
+})
+
+app.delete('/api/exercises/:id', async (c) => {
+  await c.env.DB.prepare('DELETE FROM exercises WHERE id=?').bind(Number(c.req.param('id'))).run()
   return c.json({ ok: true })
 })
 
 // --- Gallery ---
 app.get('/api/gallery', async (c) => {
-  const db = c.env.DB
-  const rows = await db.prepare('SELECT id, filename, original_name, created_at FROM gallery ORDER BY created_at DESC').all()
+  const rows = await c.env.DB.prepare('SELECT id, filename, original_name, created_at FROM gallery ORDER BY created_at DESC').all()
   return c.json(rows.results.map(r => ({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name, date: r.created_at })))
 })
 
@@ -90,20 +155,17 @@ app.post('/api/gallery', async (c) => {
 
 app.delete('/api/gallery/:id', async (c) => {
   const db = c.env.DB
-  const bucket = c.env.BUCKET
-  const id = Number(c.req.param('id'))
-  const row = await db.prepare('SELECT filename FROM gallery WHERE id = ?').bind(id).first()
+  const row = await db.prepare('SELECT filename FROM gallery WHERE id=?').bind(Number(c.req.param('id'))).first()
   if (row) {
-    await bucket.delete(row.filename)
-    await db.prepare('DELETE FROM gallery WHERE id = ?').bind(id).run()
+    await c.env.BUCKET.delete(row.filename)
+    await db.prepare('DELETE FROM gallery WHERE id=?').bind(Number(c.req.param('id'))).run()
   }
   return c.json({ ok: true })
 })
 
 // --- Documents ---
 app.get('/api/documents', async (c) => {
-  const db = c.env.DB
-  const rows = await db.prepare('SELECT id, filename, original_name, size, created_at FROM documents ORDER BY created_at DESC').all()
+  const rows = await c.env.DB.prepare('SELECT id, filename, original_name, size, created_at FROM documents ORDER BY created_at DESC').all()
   return c.json(rows.results.map(r => ({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name, size: r.size, date: r.created_at })))
 })
 
@@ -125,12 +187,10 @@ app.post('/api/documents', async (c) => {
 
 app.delete('/api/documents/:id', async (c) => {
   const db = c.env.DB
-  const bucket = c.env.BUCKET
-  const id = Number(c.req.param('id'))
-  const row = await db.prepare('SELECT filename FROM documents WHERE id = ?').bind(id).first()
+  const row = await db.prepare('SELECT filename FROM documents WHERE id=?').bind(Number(c.req.param('id'))).first()
   if (row) {
-    await bucket.delete(row.filename)
-    await db.prepare('DELETE FROM documents WHERE id = ?').bind(id).run()
+    await c.env.BUCKET.delete(row.filename)
+    await db.prepare('DELETE FROM documents WHERE id=?').bind(Number(c.req.param('id'))).run()
   }
   return c.json({ ok: true })
 })
@@ -141,20 +201,18 @@ app.get('/api/search', async (c) => {
   const q = (c.req.query('q') || '').trim()
   if (!q) return c.json({ calendar: [], gallery: [], documents: [] })
   const like = `%${q}%`
-  const calendar = await db.prepare('SELECT date, todos, note FROM calendar_data WHERE note LIKE ? OR todos LIKE ? OR diet LIKE ?').bind(like, like, like).all()
-  const gallery = await db.prepare('SELECT id, filename, original_name, created_at FROM gallery WHERE original_name LIKE ?').bind(like).all()
-  const documents = await db.prepare('SELECT id, filename, original_name, size, created_at FROM documents WHERE original_name LIKE ?').bind(like).all()
-  return c.json({
-    calendar: calendar.results.map(r => ({ date: r.date, note: r.note, todos: JSON.parse(r.todos) })),
-    gallery: gallery.results.map(r => ({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name, date: r.created_at })),
-    documents: documents.results.map(r => ({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name, size: r.size, date: r.created_at })),
-  })
+  const todosDates = await db.prepare('SELECT DISTINCT date FROM todos WHERE text LIKE ?').bind(like).all()
+  const dietDates = await db.prepare('SELECT DISTINCT date FROM diet WHERE name LIKE ? OR instructions LIKE ?').bind(like, like).all()
+  const dates = [...new Set([...todosDates.results.map(r => r.date), ...dietDates.results.map(r => r.date)])]
+  const calendar = dates.sort().reverse().map(d => ({ date: d }))
+  const gallery = (await db.prepare('SELECT id, filename, original_name, created_at FROM gallery WHERE original_name LIKE ?').bind(like).all()).results.map(r => ({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name, date: r.created_at }))
+  const documents = (await db.prepare('SELECT id, filename, original_name, size, created_at FROM documents WHERE original_name LIKE ?').bind(like).all()).results.map(r => ({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name, size: r.size, date: r.created_at }))
+  return c.json({ calendar, gallery, documents })
 })
 
 // --- Settings ---
 app.get('/api/settings', async (c) => {
-  const db = c.env.DB
-  const rows = await db.prepare('SELECT key, value FROM settings').all()
+  const rows = await c.env.DB.prepare('SELECT key, value FROM settings').all()
   const settings = {}
   for (const r of rows.results) settings[r.key] = r.value
   return c.json(settings)
@@ -171,9 +229,7 @@ app.put('/api/settings', async (c) => {
 
 // --- Serve uploads from R2 ---
 app.get('/uploads/:filename', async (c) => {
-  const bucket = c.env.BUCKET
-  const filename = c.req.param('filename')
-  const obj = await bucket.get(filename)
+  const obj = await c.env.BUCKET.get(c.req.param('filename'))
   if (!obj) return c.notFound()
   const headers = new Headers()
   obj.writeHttpMetadata(headers)
