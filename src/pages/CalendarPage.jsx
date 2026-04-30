@@ -26,6 +26,17 @@ function getTrimester(dueDate, year, month) {
   return 3
 }
 
+function getWeekForDate(dueDate, dateStr) {
+  if (!dueDate || !dateStr) return null
+  const due = new Date(dueDate + 'T00:00:00')
+  const conception = new Date(due)
+  conception.setDate(conception.getDate() - 280)
+  const d = new Date(dateStr + 'T00:00:00')
+  const days = Math.floor((d - conception) / 86400000)
+  const week = Math.floor(days / 7) + 1
+  return week >= 1 && week <= 40 ? week : null
+}
+
 export default function CalendarPage() {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
@@ -71,7 +82,7 @@ export default function CalendarPage() {
         <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out rounded-xl m-2 border ${TRIMESTER_COLORS[getTrimester(dueDate, year, month)] || 'bg-surface border-transparent'}`}>
           {loading ? <LoadingSpinner /> : error ? <ErrorMessage message={error} onRetry={retry} /> : <CalendarGrid year={year} month={month} data={data} onDayClick={openDay} trimester={getTrimester(dueDate, year, month)} />}
         </div>
-        <DayPanel isOpen={!!activeKey} dateKey={activeKey || ''} title={activeTitle} dayData={getDayData(activeKey || '')} onRefresh={() => refreshDay(activeKey)} onClose={() => setActiveKey(null)} />
+        <DayPanel isOpen={!!activeKey} dateKey={activeKey || ''} title={activeTitle} dayData={getDayData(activeKey || '')} onRefresh={() => refreshDay(activeKey)} onClose={() => setActiveKey(null)} week={getWeekForDate(dueDate, activeKey)} />
       </div>
     </div>
   )
