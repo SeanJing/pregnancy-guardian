@@ -5,8 +5,9 @@ const EMPTY = { todos: [], diet: {}, monitor: {}, exercises: [] }
 
 export function useCalendarData() {
   const [data, setData] = useState({})
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => { api.getCalendar().then(setData) }, [])
+  useEffect(() => { api.getCalendar().then(d => { setData(d); setLoading(false) }) }, [])
 
   const getDayData = useCallback((key) => data[key] || EMPTY, [data])
 
@@ -16,5 +17,5 @@ export function useCalendarData() {
     setData(prev => ({ ...prev, [key]: fresh }))
   }, [])
 
-  return { data, getDayData, refreshDay }
+  return { data, loading, getDayData, refreshDay }
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import CalendarGrid from '../components/CalendarGrid'
 import DayPanel from '../components/DayPanel'
+import LoadingSpinner from '../components/LoadingSpinner'
 import { useCalendarData } from '../useCalendarData'
 import { api } from '../api'
 
@@ -33,7 +34,7 @@ export default function CalendarPage() {
 
   useEffect(() => { api.getSettings().then(s => setDueDate(s.dueDate || null)) }, [])
   const [activeTitle, setActiveTitle] = useState('')
-  const { data, getDayData, setDayData, refreshDay } = useCalendarData()
+  const { data, loading, getDayData, refreshDay } = useCalendarData()
 
   const label = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
@@ -67,7 +68,7 @@ export default function CalendarPage() {
       </header>
       <div className="flex flex-1 overflow-hidden">
         <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out rounded-xl m-2 border ${TRIMESTER_COLORS[getTrimester(dueDate, year, month)] || 'bg-surface border-transparent'}`}>
-          <CalendarGrid year={year} month={month} data={data} onDayClick={openDay} trimester={getTrimester(dueDate, year, month)} />
+          {loading ? <LoadingSpinner /> : <CalendarGrid year={year} month={month} data={data} onDayClick={openDay} trimester={getTrimester(dueDate, year, month)} />}
         </div>
         <DayPanel isOpen={!!activeKey} dateKey={activeKey || ''} title={activeTitle} dayData={getDayData(activeKey || '')} onRefresh={() => refreshDay(activeKey)} onClose={() => setActiveKey(null)} />
       </div>
