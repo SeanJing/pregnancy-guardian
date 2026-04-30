@@ -1,20 +1,13 @@
-import { useRef } from 'react'
 import { api } from '../api'
 
 const MEALS = ['breakfast', 'lunch', 'dinner']
 const LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 
 export default function DietSection({ diet, date, onRefresh }) {
-  const timers = useRef({})
-
   const save = (meal, field, value) => {
     const current = diet[meal] || {}
     const data = { name: current.name || '', instructions: current.instructions || '', [field]: value }
-    const key = `${meal}-${field}`
-    clearTimeout(timers.current[key])
-    timers.current[key] = setTimeout(() => {
-      api.saveDiet(date, meal, data).then(onRefresh)
-    }, 500)
+    api.saveDiet(date, meal, data).then(onRefresh)
   }
 
   return (
@@ -29,13 +22,13 @@ export default function DietSection({ diet, date, onRefresh }) {
             <p className="text-xs font-medium text-ink/50 mb-1.5">{LABELS[meal]}</p>
             <input
               defaultValue={diet[meal]?.name || ''}
-              onChange={e => save(meal, 'name', e.target.value)}
+              onBlur={e => save(meal, 'name', e.target.value)}
               placeholder="Meal name"
               className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150 mb-1.5"
             />
             <input
               defaultValue={diet[meal]?.instructions || ''}
-              onChange={e => save(meal, 'instructions', e.target.value)}
+              onBlur={e => save(meal, 'instructions', e.target.value)}
               placeholder="Instructions / notes"
               className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150"
             />

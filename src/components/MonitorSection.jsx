@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { api } from '../api'
 
 const METRICS = [
@@ -9,14 +8,9 @@ const METRICS = [
 ]
 
 export default function MonitorSection({ monitor, date, onRefresh }) {
-  const timers = useRef({})
-
   const save = (metric, value) => {
     if (!value) return
-    clearTimeout(timers.current[metric])
-    timers.current[metric] = setTimeout(() => {
-      api.saveMonitor(date, metric, value).then(onRefresh)
-    }, 500)
+    api.saveMonitor(date, metric, value).then(onRefresh)
   }
 
   return (
@@ -31,7 +25,7 @@ export default function MonitorSection({ monitor, date, onRefresh }) {
             <label className="text-xs text-ink/50 mb-0.5 block">{m.label}</label>
             <input
               defaultValue={monitor[m.key]?.value || ''}
-              onChange={e => save(m.key, e.target.value)}
+              onBlur={e => save(m.key, e.target.value)}
               placeholder={m.placeholder}
               className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150"
             />
