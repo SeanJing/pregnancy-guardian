@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { api } from '../api'
 
 function formatSize(bytes) {
@@ -38,8 +38,9 @@ export default function DocumentsPage() {
   const [docs, setDocs] = useState([])
   const [viewBy, setViewBy] = useState('all') // 'all' | 'date' | 'type'
   const [typeFilter, setTypeFilter] = useState(null)
+  const loaded = useRef(false)
 
-  useEffect(() => { api.getDocuments().then(setDocs) }, [])
+  useEffect(() => { if (!loaded.current) { loaded.current = true; api.getDocuments().then(setDocs) } }, [])
 
   const addFiles = async (e) => {
     const files = Array.from(e.target.files)
