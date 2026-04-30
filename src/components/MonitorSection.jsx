@@ -14,6 +14,13 @@ export default function MonitorSection({ monitor, date, onRefresh }) {
   )
   const timers = useRef({})
 
+  // Sync when props change
+  const prevMonitor = useRef(monitor)
+  if (monitor !== prevMonitor.current) {
+    prevMonitor.current = monitor
+    setLocal(Object.fromEntries(METRICS.map(m => [m.key, monitor[m.key]?.value || ''])))
+  }
+
   const update = useCallback((metric, value) => {
     setLocal(prev => ({ ...prev, [metric]: value }))
     clearTimeout(timers.current[metric])
