@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { api, UPLOADS_BASE } from '../api'
 
 export default function GalleryPage() {
   const [photos, setPhotos] = useState([])
   const [viewing, setViewing] = useState(null)
-  const loaded = useRef(false)
 
-  useEffect(() => { if (!loaded.current) { loaded.current = true; api.getGallery().then(setPhotos) } }, [])
+  useEffect(() => { api.getGallery().then(setPhotos) }, [])
 
   const addPhotos = async (e) => {
     const files = Array.from(e.target.files)
