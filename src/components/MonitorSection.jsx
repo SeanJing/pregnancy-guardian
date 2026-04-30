@@ -10,7 +10,7 @@ const METRICS = [
 export default function MonitorSection({ monitor, date, onRefresh }) {
   const save = (metric, value) => {
     if (!value) return
-    api.saveMonitor(date, metric, value).then(onRefresh)
+    api.saveMonitor(date, metric, value).catch(onRefresh)
   }
 
   return (
