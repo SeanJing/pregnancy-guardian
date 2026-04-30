@@ -1,24 +1,21 @@
-import { useState, useRef, useCallback } from 'react'
+import { useRef } from 'react'
 import { api } from '../api'
 
 const MEALS = ['breakfast', 'lunch', 'dinner']
 const LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 
 export default function DietSection({ diet, date, onRefresh }) {
-  const [local, setLocal] = useState(diet)
   const timers = useRef({})
 
-  // Update local state immediately, debounce API save
-  const update = useCallback((meal, field, value) => {
-    const updated = { ...local, [meal]: { ...(local[meal] || {}), [field]: value } }
-    setLocal(updated)
+  const save = (meal, field, value) => {
+    const current = diet[meal] || {}
+    const data = { name: current.name || '', instructions: current.instructions || '', [field]: value }
     const key = `${meal}-${field}`
     clearTimeout(timers.current[key])
     timers.current[key] = setTimeout(() => {
-      const m = updated[meal]
-      api.saveDiet(date, meal, { name: m.name || '', instructions: m.instructions || '' }).then(onRefresh)
+      api.saveDiet(date, meal, data).then(onRefresh)
     }, 500)
-  }, [local, date, onRefresh])
+  }
 
   return (
     <section>
@@ -31,14 +28,14 @@ export default function DietSection({ diet, date, onRefresh }) {
           <div key={meal} className="bg-surface/50 rounded-lg p-3">
             <p className="text-xs font-medium text-ink/50 mb-1.5">{LABELS[meal]}</p>
             <input
-              value={local[meal]?.name || ''}
-              onChange={e => update(meal, 'name', e.target.value)}
+              defaultValue={diet[meal]?.name || ''}
+              onChange={e => save(meal, 'name', e.target.value)}
               placeholder="Meal name"
               className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150 mb-1.5"
             />
             <input
-              value={local[meal]?.instructions || ''}
-              onChange={e => update(meal, 'instructions', e.target.value)}
+              defaultValue={diet[meal]?.instructions || ''}
+              onChange={e => save(meal, 'instructions', e.target.value)}
               placeholder="Instructions / notes"
               className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150"
             />

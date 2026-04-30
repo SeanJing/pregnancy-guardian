@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useRef } from 'react'
 import { api } from '../api'
 
 const METRICS = [
@@ -9,18 +9,15 @@ const METRICS = [
 ]
 
 export default function MonitorSection({ monitor, date, onRefresh }) {
-  const [local, setLocal] = useState(
-    Object.fromEntries(METRICS.map(m => [m.key, monitor[m.key]?.value || '']))
-  )
   const timers = useRef({})
 
-  const update = useCallback((metric, value) => {
-    setLocal(prev => ({ ...prev, [metric]: value }))
+  const save = (metric, value) => {
+    if (!value) return
     clearTimeout(timers.current[metric])
     timers.current[metric] = setTimeout(() => {
-      if (value) api.saveMonitor(date, metric, value).then(onRefresh)
+      api.saveMonitor(date, metric, value).then(onRefresh)
     }, 500)
-  }, [date, onRefresh])
+  }
 
   return (
     <section>
@@ -33,8 +30,8 @@ export default function MonitorSection({ monitor, date, onRefresh }) {
           <div key={m.key}>
             <label className="text-xs text-ink/50 mb-0.5 block">{m.label}</label>
             <input
-              value={local[m.key]}
-              onChange={e => update(m.key, e.target.value)}
+              defaultValue={monitor[m.key]?.value || ''}
+              onChange={e => save(m.key, e.target.value)}
               placeholder={m.placeholder}
               className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150"
             />
