@@ -172,11 +172,13 @@ def delete_todo(todo_id: int):
 async def save_diet(date_str: str, meal: str, request: Request):
     body = await request.json()
     conn = get_db()
-    existing = conn.execute("SELECT id FROM diet WHERE date=? AND meal=?", (date_str, meal)).fetchone()
+    existing = conn.execute("SELECT id, name, instructions FROM diet WHERE date=? AND meal=?", (date_str, meal)).fetchone()
+    name = body["name"] if "name" in body else (existing["name"] if existing else "")
+    instructions = body["instructions"] if "instructions" in body else (existing["instructions"] if existing else "")
     if existing:
-        conn.execute("UPDATE diet SET name=?, instructions=? WHERE id=?", (body.get("name", ""), body.get("instructions", ""), existing["id"]))
+        conn.execute("UPDATE diet SET name=?, instructions=? WHERE id=?", (name, instructions, existing["id"]))
     else:
-        conn.execute("INSERT INTO diet (date, meal, name, instructions) VALUES (?, ?, ?, ?)", (date_str, meal, body.get("name", ""), body.get("instructions", "")))
+        conn.execute("INSERT INTO diet (date, meal, name, instructions) VALUES (?, ?, ?, ?)", (date_str, meal, name, instructions))
     conn.commit()
     conn.close()
     return {"ok": True}

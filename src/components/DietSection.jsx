@@ -5,9 +5,7 @@ const LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 
 export default function DietSection({ diet, date, onRefresh }) {
   const save = (meal, field, value) => {
-    const current = diet[meal] || {}
-    const data = { name: current.name || '', instructions: current.instructions || '', [field]: value }
-    api.saveDiet(date, meal, data).catch(onRefresh)
+    api.saveDiet(date, meal, { [field]: value }).catch(onRefresh)
   }
 
   return (

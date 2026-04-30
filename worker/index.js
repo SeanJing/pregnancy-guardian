@@ -85,9 +85,9 @@ app.put('/api/diet/:date/:meal', async (c) => {
   const date = c.req.param('date')
   const meal = c.req.param('meal')
   const body = await c.req.json()
-  const name = body.name || ''
-  const instructions = body.instructions || ''
-  // Delete + insert as upsert (D1 doesn't support ON CONFLICT with multiple columns reliably)
+  const existing = await db.prepare('SELECT id, name, instructions FROM diet WHERE date=? AND meal=?').bind(date, meal).first()
+  const name = body.name !== undefined ? body.name : (existing?.name || '')
+  const instructions = body.instructions !== undefined ? body.instructions : (existing?.instructions || '')
   await db.prepare('DELETE FROM diet WHERE date=? AND meal=?').bind(date, meal).run()
   await db.prepare('INSERT INTO diet (date, meal, name, instructions) VALUES (?, ?, ?, ?)').bind(date, meal, name, instructions).run()
   return c.json({ ok: true })
