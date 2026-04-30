@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { api } from '../api'
 
-export default function ExerciseSection({ exercises, date, onRefresh }) {
+export default function ExerciseSection({ exercises: initialExercises, date, onRefresh }) {
+  const [exercises, setExercises] = useState(initialExercises)
   const [activity, setActivity] = useState('')
   const [steps, setSteps] = useState('')
   const [duration, setDuration] = useState('')
@@ -9,14 +10,16 @@ export default function ExerciseSection({ exercises, date, onRefresh }) {
   const add = async (e) => {
     e.preventDefault()
     if (!activity && !steps && !duration) return
-    await api.createExercise({ date, activity, steps: Number(steps) || 0, duration: Number(duration) || 0 })
+    const temp = { id: Date.now(), activity, steps: Number(steps) || 0, duration: Number(duration) || 0 }
+    setExercises(prev => [...prev, temp])
     setActivity(''); setSteps(''); setDuration('')
-    onRefresh()
+    const res = await api.createExercise({ date, ...temp })
+    setExercises(prev => prev.map(ex => ex.id === temp.id ? { ...ex, id: res.id } : ex))
   }
 
   const remove = async (id) => {
-    await api.deleteExercise(id)
-    onRefresh()
+    setExercises(prev => prev.filter(ex => ex.id !== id))
+    api.deleteExercise(id).catch(onRefresh)
   }
 
   return (

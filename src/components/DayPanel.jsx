@@ -5,7 +5,7 @@ import TodoSection from './TodoSection'
 
 export default function DayPanel({ isOpen, dateKey, title, dayData, onRefresh, onClose }) {
   // Use a version key so sections remount when data loads
-  const version = JSON.stringify(dayData)
+  const version = dateKey + JSON.stringify(dayData)
 
   return (
     <aside className={`shrink-0 border-l border-gray-200 bg-white overflow-hidden transition-all duration-1000 ease-in-out ${isOpen ? 'w-[40rem]' : 'w-0 border-l-0'}`}>

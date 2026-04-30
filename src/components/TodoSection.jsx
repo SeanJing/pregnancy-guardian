@@ -1,25 +1,28 @@
 import { useState } from 'react'
 import { api } from '../api'
 
-export default function TodoSection({ todos, date, onRefresh }) {
+export default function TodoSection({ todos: initialTodos, date, onRefresh }) {
+  const [todos, setTodos] = useState(initialTodos)
   const [text, setText] = useState('')
 
   const add = async (e) => {
     e.preventDefault()
     if (!text.trim()) return
-    await api.createTodo(date, text.trim())
+    const temp = { id: Date.now(), text: text.trim(), done: false }
+    setTodos(prev => [...prev, temp])
     setText('')
-    onRefresh()
+    const res = await api.createTodo(date, temp.text)
+    setTodos(prev => prev.map(t => t.id === temp.id ? { ...t, id: res.id } : t))
   }
 
   const toggle = async (todo) => {
-    await api.updateTodo(todo.id, { text: todo.text, done: !todo.done })
-    onRefresh()
+    setTodos(prev => prev.map(t => t.id === todo.id ? { ...t, done: !t.done } : t))
+    api.updateTodo(todo.id, { text: todo.text, done: !todo.done }).catch(onRefresh)
   }
 
   const remove = async (id) => {
-    await api.deleteTodo(id)
-    onRefresh()
+    setTodos(prev => prev.filter(t => t.id !== id))
+    api.deleteTodo(id).catch(onRefresh)
   }
 
   return (
