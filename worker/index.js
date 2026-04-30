@@ -230,4 +230,48 @@ app.get('/uploads/:filename', async (c) => {
   return new Response(obj.body, { headers })
 })
 
+// --- Knowledge Base (RAG) ---
+app.post('/api/knowledge/ingest', async (c) => {
+  const { chunks } = await c.req.json() // [{ id, text, meta }]
+  if (!chunks?.length) return c.json({ error: 'No chunks provided' }, 400)
+
+  // Embed all chunks
+  const texts = chunks.map(ch => ch.text)
+  const { data } = await c.env.AI.run('@cf/baai/bge-base-en-v1.5', { text: texts })
+
+  // Upsert into Vectorize
+  const vectors = chunks.map((ch, i) => ({
+    id: ch.id,
+    values: data[i],
+    metadata: { text: ch.text, ...(ch.meta || {}) }
+  }))
+  await c.env.VECTORIZE.upsert(vectors)
+
+  return c.json({ ok: true, count: vectors.length })
+})
+
+app.post('/api/ask', async (c) => {
+  const { question } = await c.req.json()
+  if (!question) return c.json({ error: 'No question provided' }, 400)
+
+  // Embed the question
+  const { data } = await c.env.AI.run('@cf/baai/bge-base-en-v1.5', { text: [question] })
+
+  // Search for relevant chunks
+  const results = await c.env.VECTORIZE.query(data[0], { topK: 5, returnMetadata: 'all' })
+  const context = results.matches.map(m => m.metadata.text).join('\n\n')
+
+  if (!context) return c.json({ answer: "I don't have enough information to answer that question." })
+
+  // Ask LLM
+  const response = await c.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+    messages: [
+      { role: 'system', content: `You are a helpful pregnancy health assistant. Answer the question based ONLY on the following knowledge. If the answer is not in the knowledge, say so. Be concise and caring.\n\nKnowledge:\n${context}` },
+      { role: 'user', content: question }
+    ]
+  })
+
+  return c.json({ answer: response.response, sources: results.matches.map(m => ({ week: m.metadata.week, score: m.score })) })
+})
+
 export default app

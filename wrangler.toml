@@ -12,3 +12,12 @@ database_id = "04b2cae5-425f-4352-b017-a6de63c67c75"
 [[r2_buckets]]
 binding = "BUCKET"
 bucket_name = "pg-uploads"
+
+# Workers AI
+[ai]
+binding = "AI"
+
+# Vectorize
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "pg-knowledge"

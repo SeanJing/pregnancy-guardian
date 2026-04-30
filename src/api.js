@@ -61,4 +61,7 @@ export const api = {
 
   // Search
   search: (q) => json(`/search?q=${encodeURIComponent(q)}`),
+
+  // AI Assistant
+  ask: (question) => json('/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question }) }),
 }
