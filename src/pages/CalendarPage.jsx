@@ -39,8 +39,11 @@ function getWeekForDate(dueDate, dateStr) {
 
 export default function CalendarPage() {
   const now = new Date()
-  const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState(now.getMonth())
+  const [weekStart, setWeekStart] = useState(() => {
+    const d = new Date(now)
+    d.setDate(d.getDate() - d.getDay())
+    return d
+  })
   const [activeKey, setActiveKey] = useState(null)
   const [dueDate, setDueDate] = useState(null)
 
@@ -48,17 +51,28 @@ export default function CalendarPage() {
   const [activeTitle, setActiveTitle] = useState('')
   const { data, loading, error, getDayData, refreshDay, retry } = useCalendarData()
 
-  const label = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const weekEnd = new Date(weekStart)
+  weekEnd.setDate(weekStart.getDate() + 6)
+  const label = `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
 
-  const changeMonth = (dir) => {
-    let m = month + dir, y = year
-    if (m > 11) { m = 0; y++ } else if (m < 0) { m = 11; y-- }
-    setMonth(m); setYear(y)
+  const changeWeek = (dir) => {
+    setWeekStart(prev => {
+      const d = new Date(prev)
+      d.setDate(d.getDate() + dir * 7)
+      return d
+    })
+  }
+
+  const goToday = () => {
+    const d = new Date()
+    d.setDate(d.getDate() - d.getDay())
+    setWeekStart(d)
   }
 
   const openDay = (day, key) => {
     setActiveKey(key)
-    setActiveTitle(new Date(year, month, day).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }))
+    const d = new Date(key + 'T00:00:00')
+    setActiveTitle(d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }))
     refreshDay(key)
   }
 
@@ -68,19 +82,19 @@ export default function CalendarPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-ink font-heading">Calendar</h2>
           <div className="flex items-center gap-2">
-            <button onClick={() => changeMonth(-1)} className="p-2 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors duration-150 active:scale-95" aria-label="Previous month">
+            <button onClick={() => changeWeek(-1)} className="p-2 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors duration-150 active:scale-95" aria-label="Previous week">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
             </button>
-            <button onClick={() => { setMonth(now.getMonth()); setYear(now.getFullYear()) }} className="text-base font-semibold px-3 py-1 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors duration-150 active:scale-95">{label}</button>
-            <button onClick={() => changeMonth(1)} className="p-2 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors duration-150 active:scale-95" aria-label="Next month">
+            <button onClick={goToday} className="text-base font-semibold px-3 py-1 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors duration-150 active:scale-95">{label}</button>
+            <button onClick={() => changeWeek(1)} className="p-2 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors duration-150 active:scale-95" aria-label="Next week">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             </button>
           </div>
         </div>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out rounded-xl m-2 border ${TRIMESTER_COLORS[getTrimester(dueDate, year, month)] || 'bg-surface border-transparent'}`}>
-          {loading ? <LoadingSpinner /> : error ? <ErrorMessage message={error} onRetry={retry} /> : <CalendarGrid year={year} month={month} data={data} onDayClick={openDay} trimester={getTrimester(dueDate, year, month)} />}
+        <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out rounded-xl m-2 border ${TRIMESTER_COLORS[getTrimester(dueDate, weekStart.getFullYear(), weekStart.getMonth())] || 'bg-surface border-transparent'}`}>
+          {loading ? <LoadingSpinner /> : error ? <ErrorMessage message={error} onRetry={retry} /> : <CalendarGrid weekStart={weekStart} data={data} onDayClick={openDay} />}
         </div>
         <DayPanel isOpen={!!activeKey} dateKey={activeKey || ''} title={activeTitle} dayData={getDayData(activeKey || '')} onRefresh={() => refreshDay(activeKey)} onClose={() => setActiveKey(null)} week={getWeekForDate(dueDate, activeKey)} />
       </div>
