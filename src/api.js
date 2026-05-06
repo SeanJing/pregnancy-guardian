@@ -73,21 +73,22 @@ export const api = {
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
     let full = ''
+    let sources = []
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
       const chunk = decoder.decode(value, { stream: true })
-      // Parse SSE data lines
       for (const line of chunk.split('\n')) {
         if (line.startsWith('data: ') && line !== 'data: [DONE]') {
           try {
             const json = JSON.parse(line.slice(6))
+            if (json.sources) { sources = json.sources; continue }
             const token = json.response || json.choices?.[0]?.delta?.content || ''
             if (token) { full += token; onChunk(full) }
           } catch {}
         }
       }
     }
-    return full
+    return { answer: full, sources }
   },
 }

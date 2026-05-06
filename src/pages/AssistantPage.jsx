@@ -20,12 +20,18 @@ export default function AssistantPage() {
     // Add empty assistant message that will stream in
     setMessages(prev => [...prev, { role: 'assistant', text: '' }])
     try {
-      await api.ask(question, (text) => {
+      const { sources } = await api.ask(question, (text) => {
         setMessages(prev => {
           const updated = [...prev]
           updated[updated.length - 1] = { role: 'assistant', text }
           return updated
         })
+      })
+      // Add sources after stream completes
+      setMessages(prev => {
+        const updated = [...prev]
+        updated[updated.length - 1] = { ...updated[updated.length - 1], sources }
+        return updated
       })
     } catch {
       setMessages(prev => {
