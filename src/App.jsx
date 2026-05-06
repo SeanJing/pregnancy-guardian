@@ -4,10 +4,8 @@ import HomePage from './pages/HomePage'
 import CalendarPage from './pages/CalendarPage'
 import GalleryPage from './pages/GalleryPage'
 import DocumentsPage from './pages/DocumentsPage'
-import SearchPage from './pages/SearchPage'
 import AssistantPage from './pages/AssistantPage'
 
-const PAGES = { calendar: CalendarPage, gallery: GalleryPage, documents: DocumentsPage, search: SearchPage }
 
 export default function App() {
   const [page, setPage] = useState('home')
@@ -35,7 +33,6 @@ export default function App() {
             {visited.calendar && <div className={page === 'calendar' ? '' : 'hidden'}><CalendarPage /></div>}
             {visited.gallery && <div className={page === 'gallery' ? '' : 'hidden'}><GalleryPage /></div>}
             {visited.documents && <div className={page === 'documents' ? '' : 'hidden'}><DocumentsPage /></div>}
-            {visited.search && <div className={page === 'search' ? '' : 'hidden'}><SearchPage /></div>}
             {visited.assistant && <div className={page === 'assistant' ? '' : 'hidden'}><AssistantPage /></div>}
           </main>
         </div>

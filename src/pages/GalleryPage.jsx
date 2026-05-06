@@ -8,9 +8,12 @@ export default function GalleryPage() {
   const [viewing, setViewing] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [search, setSearch] = useState('')
 
   const load = () => { setLoading(true); setError(null); api.getGallery().then(d => { setPhotos(d); setLoading(false) }).catch(e => { setError(e.message); setLoading(false) }) }
   useEffect(load, [])
+
+  const filtered = search ? photos.filter(p => p.name.toLowerCase().includes(search.toLowerCase())) : photos
 
   const addPhotos = async (e) => {
     const files = Array.from(e.target.files)
@@ -28,13 +31,18 @@ export default function GalleryPage() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur px-4 md:px-6 lg:px-8 py-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-ink font-heading">Gallery</h2>
-        <label className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-light cursor-pointer transition-colors duration-150 active:scale-95">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-          Add Photos
-          <input type="file" accept="image/*" multiple className="hidden" onChange={addPhotos} />
-        </label>
+      <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur px-4 md:px-6 lg:px-8 py-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-ink font-heading">Gallery</h2>
+          <label className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-light cursor-pointer transition-colors duration-150 active:scale-95">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Add Photos
+            <input type="file" accept="image/*" multiple className="hidden" onChange={addPhotos} />
+          </label>
+        </div>
+        {photos.length > 0 && (
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search photos…" className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-primary transition-colors duration-150" />
+        )}
       </header>
 
       <div className="px-4 md:px-6 lg:px-8 pb-8">
@@ -45,7 +53,7 @@ export default function GalleryPage() {
           </div>
         ) : (
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {photos.map((p, i) => (
+            {filtered.map((p, i) => (
               <button key={p.id} onClick={() => setViewing(i)} className="aspect-square overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity duration-150">
                 <img src={UPLOADS_BASE + p.url} alt={p.name} className="w-full h-full object-cover" />
               </button>

@@ -42,6 +42,7 @@ export default function DocumentsPage() {
   const [typeFilter, setTypeFilter] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [search, setSearch] = useState('')
 
   const load = () => { setLoading(true); setError(null); api.getDocuments().then(d => { setDocs(d); setLoading(false) }).catch(e => { setError(e.message); setLoading(false) }) }
   useEffect(load, [])
@@ -62,27 +63,28 @@ export default function DocumentsPage() {
   // Group by date
   const byDate = useMemo(() => {
     const groups = {}
-    docs.forEach(d => {
+    searchedDocs.forEach(d => {
       const key = d.date?.split(' ')[0] || 'Unknown'
       ;(groups[key] ||= []).push(d)
     })
     return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]))
-  }, [docs])
+  }, [searchedDocs])
 
   // Group by type
   const byType = useMemo(() => {
     const groups = {}
-    docs.forEach(d => {
+    searchedDocs.forEach(d => {
       const t = getType(d.name)
       ;(groups[t] ||= []).push(d)
     })
     return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]))
-  }, [docs])
+  }, [searchedDocs])
 
   // Available types for filter chips
   const types = useMemo(() => [...new Set(docs.map(d => getType(d.name)))].sort(), [docs])
 
-  const filteredDocs = typeFilter ? docs.filter(d => getType(d.name) === typeFilter) : docs
+  const searchedDocs = search ? docs.filter(d => d.name.toLowerCase().includes(search.toLowerCase())) : docs
+  const filteredDocs = typeFilter ? searchedDocs.filter(d => getType(d.name) === typeFilter) : searchedDocs
 
   const renderRow = (doc) => (
     <li key={doc.id} className="flex items-center gap-4 py-3 group">
@@ -109,7 +111,9 @@ export default function DocumentsPage() {
           </label>
         </div>
         {docs.length > 0 && (
-          <div className="flex items-center gap-1.5">
+          <div className="space-y-2">
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search documents…" className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-primary transition-colors duration-150" />
+            <div className="flex items-center gap-1.5">
             {['all', 'date', 'type'].map(v => (
               <button key={v} onClick={() => { setViewBy(v); setTypeFilter(null) }}
                 className={`px-3 py-1 text-xs font-medium rounded-full cursor-pointer transition-colors duration-150 ${viewBy === v ? 'bg-primary text-white' : 'bg-white text-ink/60 hover:bg-primary/10'}`}>
@@ -122,6 +126,7 @@ export default function DocumentsPage() {
                 {t}
               </button>
             ))}
+            </div>
           </div>
         )}
       </header>
