@@ -276,7 +276,7 @@ app.post('/api/ask', async (c) => {
   if (!context) return c.json({ answer: "I don't have enough information to answer that question." })
 
   // Ask LLM with streaming
-  const stream = await c.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+  const stream = await c.env.AI.run('@cf/deepseek-ai/deepseek-r1-distill-qwen-32b', {
     messages: [
       { role: 'system', content: `You are a helpful pregnancy health assistant. Answer based ONLY on the following knowledge. If the answer is not in the knowledge, say so. Be concise, warm, and professional.\n\nKnowledge:\n${context}` },
       { role: 'user', content: question }
