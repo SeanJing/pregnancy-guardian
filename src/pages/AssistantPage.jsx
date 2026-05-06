@@ -14,11 +14,22 @@ export default function AssistantPage() {
     setMessages(prev => [...prev, { role: 'user', text: question }])
     setInput('')
     setLoading(true)
+    // Add empty assistant message that will stream in
+    setMessages(prev => [...prev, { role: 'assistant', text: '' }])
     try {
-      const res = await api.ask(question)
-      setMessages(prev => [...prev, { role: 'assistant', text: res.answer, sources: res.sources }])
+      await api.ask(question, (text) => {
+        setMessages(prev => {
+          const updated = [...prev]
+          updated[updated.length - 1] = { role: 'assistant', text }
+          return updated
+        })
+      })
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, something went wrong. Please try again.' }])
+      setMessages(prev => {
+        const updated = [...prev]
+        updated[updated.length - 1] = { role: 'assistant', text: 'Sorry, something went wrong. Please try again.' }
+        return updated
+      })
     }
     setLoading(false)
   }

@@ -263,16 +263,18 @@ app.post('/api/ask', async (c) => {
 
   if (!context) return c.json({ answer: "I don't have enough information to answer that question." })
 
-  // Ask LLM
-  const response = await c.env.AI.run('@cf/qwen/qwen3-30b-a3b-fp8', {
+  // Ask LLM with streaming
+  const stream = await c.env.AI.run('@cf/qwen/qwen3-30b-a3b-fp8', {
     messages: [
       { role: 'system', content: `你是一位专业的孕期健康助手。请根据以下知识库内容回答问题。如果知识库中没有相关信息，请如实说明。回答要简洁、温暖、专业。\n\n知识库内容:\n${context}` },
       { role: 'user', content: question }
-    ]
+    ],
+    stream: true
   })
 
-  const answer = response.response || response.choices?.[0]?.message?.content || ''
-  return c.json({ answer, sources: results.matches.map(m => ({ week: m.metadata.week, score: m.score })) })
+  return new Response(stream, {
+    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
+  })
 })
 
 export default app

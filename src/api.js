@@ -62,6 +62,32 @@ export const api = {
   // Search
   search: (q) => json(`/search?q=${encodeURIComponent(q)}`),
 
-  // AI Assistant
-  ask: (question) => json('/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question }) }),
+  // AI Assistant (streaming)
+  ask: async (question, onChunk) => {
+    const res = await fetch(BASE + '/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    })
+    if (!res.ok) throw new Error(`API error: ${res.status}`)
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let full = ''
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      const chunk = decoder.decode(value, { stream: true })
+      // Parse SSE data lines
+      for (const line of chunk.split('\n')) {
+        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+          try {
+            const json = JSON.parse(line.slice(6))
+            const token = json.response || json.choices?.[0]?.delta?.content || ''
+            if (token) { full += token; onChunk(full) }
+          } catch {}
+        }
+      }
+    }
+    return full
+  },
 }
