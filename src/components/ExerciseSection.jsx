@@ -1,25 +1,25 @@
 import { useState } from 'react'
 import { api } from '../api'
 
-export default function ExerciseSection({ exercises: initialExercises, date, onRefresh }) {
+export default function ExerciseSection({ exercises: initialExercises, date, updateDay }) {
   const [exercises, setExercises] = useState(initialExercises)
   const [activity, setActivity] = useState('')
   const [steps, setSteps] = useState('')
   const [duration, setDuration] = useState('')
 
+  const sync = (newExercises) => { setExercises(newExercises); updateDay(d => ({ ...d, exercises: newExercises })) }
+
   const add = async (e) => {
     e.preventDefault()
     if (!activity && !steps && !duration) return
-    const temp = { id: Date.now(), activity, steps: Number(steps) || 0, duration: Number(duration) || 0 }
-    setExercises(prev => [...prev, temp])
+    const res = await api.createExercise({ date, activity, steps: Number(steps) || 0, duration: Number(duration) || 0 })
+    sync([...exercises, { id: res.id, activity, steps: Number(steps) || 0, duration: Number(duration) || 0 }])
     setActivity(''); setSteps(''); setDuration('')
-    const res = await api.createExercise({ date, ...temp })
-    setExercises(prev => prev.map(ex => ex.id === temp.id ? { ...ex, id: res.id } : ex))
   }
 
   const remove = async (id) => {
-    setExercises(prev => prev.filter(ex => ex.id !== id))
-    api.deleteExercise(id).catch(onRefresh)
+    sync(exercises.filter(ex => ex.id !== id))
+    api.deleteExercise(id)
   }
 
   return (

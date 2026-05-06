@@ -4,9 +4,11 @@ import guide from '../data/pg.json'
 const MEALS = ['breakfast', 'lunch', 'dinner']
 const LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 
-export default function DietSection({ diet, date, onRefresh, week }) {
+export default function DietSection({ diet, date, updateDay, week }) {
   const save = (meal, field, value) => {
-    api.saveDiet(date, meal, { [field]: value }).catch(onRefresh)
+    const updated = { ...diet, [meal]: { ...(diet[meal] || {}), [field]: value } }
+    updateDay(d => ({ ...d, diet: updated }))
+    api.saveDiet(date, meal, { [field]: value })
   }
 
   const weekData = guide[`week_${week}`]

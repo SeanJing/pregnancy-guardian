@@ -7,10 +7,12 @@ const METRICS = [
   { key: 'bloodSugar', label: 'Blood Sugar (mmol/L)', placeholder: 'e.g. 5.2' },
 ]
 
-export default function MonitorSection({ monitor, date, onRefresh }) {
+export default function MonitorSection({ monitor, date, updateDay }) {
   const save = (metric, value) => {
     if (!value) return
-    api.saveMonitor(date, metric, value).catch(onRefresh)
+    const updated = { ...monitor, [metric]: { ...(monitor[metric] || {}), value } }
+    updateDay(d => ({ ...d, monitor: updated }))
+    api.saveMonitor(date, metric, value)
   }
 
   return (

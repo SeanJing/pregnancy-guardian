@@ -1,28 +1,29 @@
 import { useState } from 'react'
 import { api } from '../api'
 
-export default function TodoSection({ todos: initialTodos, date, onRefresh }) {
+export default function TodoSection({ todos: initialTodos, date, updateDay }) {
   const [todos, setTodos] = useState(initialTodos)
   const [text, setText] = useState('')
+
+  const sync = (newTodos) => { setTodos(newTodos); updateDay(d => ({ ...d, todos: newTodos })) }
 
   const add = async (e) => {
     e.preventDefault()
     if (!text.trim()) return
-    const temp = { id: Date.now(), text: text.trim(), done: false }
-    setTodos(prev => [...prev, temp])
+    const res = await api.createTodo(date, text.trim())
+    sync([...todos, { id: res.id, text: text.trim(), done: false }])
     setText('')
-    const res = await api.createTodo(date, temp.text)
-    setTodos(prev => prev.map(t => t.id === temp.id ? { ...t, id: res.id } : t))
   }
 
   const toggle = async (todo) => {
-    setTodos(prev => prev.map(t => t.id === todo.id ? { ...t, done: !t.done } : t))
-    api.updateTodo(todo.id, { text: todo.text, done: !todo.done }).catch(onRefresh)
+    const updated = todos.map(t => t.id === todo.id ? { ...t, done: !t.done } : t)
+    sync(updated)
+    api.updateTodo(todo.id, { text: todo.text, done: !todo.done })
   }
 
   const remove = async (id) => {
-    setTodos(prev => prev.filter(t => t.id !== id))
-    api.deleteTodo(id).catch(onRefresh)
+    sync(todos.filter(t => t.id !== id))
+    api.deleteTodo(id)
   }
 
   return (

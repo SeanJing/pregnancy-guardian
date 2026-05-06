@@ -3,7 +3,7 @@ import MonitorSection from './MonitorSection'
 import ExerciseSection from './ExerciseSection'
 import TodoSection from './TodoSection'
 
-export default function DayPanel({ isOpen, dateKey, title, dayData, onRefresh, onClose, week }) {
+export default function DayPanel({ isOpen, dateKey, title, dayData, updateDay, onClose, week }) {
   // Use a version key so sections remount when data loads
   const version = dateKey + JSON.stringify(dayData)
 
@@ -17,10 +17,10 @@ export default function DayPanel({ isOpen, dateKey, title, dayData, onRefresh, o
           </button>
         </div>
         <div key={version} className="p-5 space-y-6">
-          <DietSection diet={dayData.diet || {}} date={dateKey} onRefresh={onRefresh} week={week} />
-          <MonitorSection monitor={dayData.monitor || {}} date={dateKey} onRefresh={onRefresh} />
-          <ExerciseSection exercises={dayData.exercises || []} date={dateKey} onRefresh={onRefresh} />
-          <TodoSection todos={dayData.todos || []} date={dateKey} onRefresh={onRefresh} />
+          <DietSection diet={dayData.diet || {}} date={dateKey} updateDay={updateDay} week={week} />
+          <MonitorSection monitor={dayData.monitor || {}} date={dateKey} updateDay={updateDay} />
+          <ExerciseSection exercises={dayData.exercises || []} date={dateKey} updateDay={updateDay} />
+          <TodoSection todos={dayData.todos || []} date={dateKey} updateDay={updateDay} />
         </div>
       </div>
     </aside>

@@ -24,5 +24,14 @@ export function useCalendarData(weekStart) {
 
   const getDayData = useCallback((key) => data[key] || EMPTY, [data])
 
-  return { data, loading, error, getDayData, retry: load }
+  // Update a specific day's data in the local cache
+  const updateDay = useCallback((key, updater) => {
+    setData(prev => {
+      const current = prev[key] || EMPTY
+      const next = typeof updater === 'function' ? updater(current) : updater
+      return { ...prev, [key]: next }
+    })
+  }, [])
+
+  return { data, loading, error, getDayData, retry: load, updateDay }
 }

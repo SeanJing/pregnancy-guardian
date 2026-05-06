@@ -31,6 +31,7 @@ export const api = {
 
   // Calendar
   getCalendar: (from, to) => cachedGet(`/calendar?from=${from}&to=${to}`),
+  invalidateCalendar,
   getDay: (date) => json(`/calendar/${date}`),
 
   // Todos
