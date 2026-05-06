@@ -66,7 +66,7 @@ export default function AssistantPage() {
                 <div className="prose prose-sm max-w-none"><Markdown>{msg.text}</Markdown></div>
               )}
               {msg.sources?.length > 0 && (
-                <p className="text-xs mt-2 opacity-50">Sources: {msg.sources.map(s => `Week ${s.week}`).filter(Boolean).join(', ')}</p>
+                <p className="text-xs mt-2 opacity-50">Sources: {msg.sources.map(s => s.week ? `Week ${s.week}` : s.page ? `Page ${s.page}` : null).filter(Boolean).join(', ')}</p>
               )}
             </div>
           </div>
