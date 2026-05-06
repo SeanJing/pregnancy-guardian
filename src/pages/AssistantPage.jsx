@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Markdown from 'react-markdown'
 import { api } from '../api'
 
 export default function AssistantPage() {
@@ -39,7 +40,11 @@ export default function AssistantPage() {
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-white text-ink'}`}>
-              <p className="whitespace-pre-wrap">{msg.text}</p>
+              {msg.role === 'user' ? (
+                <p>{msg.text}</p>
+              ) : (
+                <div className="prose prose-sm max-w-none"><Markdown>{msg.text}</Markdown></div>
+              )}
               {msg.sources?.length > 0 && (
                 <p className="text-xs mt-2 opacity-50">Sources: {msg.sources.map(s => `Week ${s.week}`).filter(Boolean).join(', ')}</p>
               )}
