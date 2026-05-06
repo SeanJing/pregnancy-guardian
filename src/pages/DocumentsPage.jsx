@@ -61,6 +61,9 @@ export default function DocumentsPage() {
   }
 
   // Group by date
+  const searchedDocs = search ? docs.filter(d => d.name.toLowerCase().includes(search.toLowerCase())) : docs
+  const filteredDocs = typeFilter ? searchedDocs.filter(d => getType(d.name) === typeFilter) : searchedDocs
+
   const byDate = useMemo(() => {
     const groups = {}
     searchedDocs.forEach(d => {
@@ -82,9 +85,6 @@ export default function DocumentsPage() {
 
   // Available types for filter chips
   const types = useMemo(() => [...new Set(docs.map(d => getType(d.name)))].sort(), [docs])
-
-  const searchedDocs = search ? docs.filter(d => d.name.toLowerCase().includes(search.toLowerCase())) : docs
-  const filteredDocs = typeFilter ? searchedDocs.filter(d => getType(d.name) === typeFilter) : searchedDocs
 
   const renderRow = (doc) => (
     <li key={doc.id} className="flex items-center gap-4 py-3 group">
