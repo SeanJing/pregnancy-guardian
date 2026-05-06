@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Markdown from 'react-markdown'
 import { api } from '../api'
 
@@ -6,6 +6,9 @@ export default function AssistantPage() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const bottomRef = useRef(null)
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
   const ask = async (e) => {
     e.preventDefault()
@@ -73,6 +76,7 @@ export default function AssistantPage() {
             </div>
           </div>
         )}
+        <div ref={bottomRef} />
       </div>
 
       <form onSubmit={ask} className="px-4 md:px-6 lg:px-8 py-4 border-t border-gray-200 bg-white">
