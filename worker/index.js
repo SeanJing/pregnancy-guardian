@@ -288,15 +288,24 @@ app.post('/api/ask', async (c) => {
   const sources = JSON.stringify(results.matches.map(m => ({ week: m.metadata.week, page: m.metadata.page, score: m.score })))
   const { readable, writable } = new TransformStream()
   const writer = writable.getWriter()
+  const encoder = new TextEncoder()
 
   ;(async () => {
-    const reader = stream.getReader()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      await writer.write(value)
-    }
-    await writer.write(new TextEncoder().encode(`data: {"sources":${sources}}\n\n`))
+    try {
+      if (stream[Symbol.asyncIterator]) {
+        for await (const chunk of stream) {
+          await writer.write(typeof chunk === 'string' ? encoder.encode(chunk) : chunk)
+        }
+      } else {
+        const reader = stream.getReader()
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          await writer.write(value)
+        }
+      }
+    } catch {}
+    await writer.write(encoder.encode(`data: {"sources":${sources}}\n\n`))
     await writer.close()
   })()
 
