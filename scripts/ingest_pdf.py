@@ -9,6 +9,7 @@ Example:
 """
 
 import sys
+import os
 import json
 import hashlib
 import requests
@@ -29,7 +30,7 @@ def extract_text(pdf_path):
     doc.close()
     return pages
 
-def chunk_text(pages, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
+def chunk_text(pages, book_name, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     """Split pages into overlapping chunks."""
     chunks = []
     for page_num, text in pages:
@@ -41,9 +42,9 @@ def chunk_text(pages, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
             if len(current) + len(para) > chunk_size and current:
                 chunk_id = hashlib.md5(current.encode()).hexdigest()[:12]
                 chunks.append({
-                    'id': f'book_p{page_num}_{chunk_id}',
+                    'id': f'{book_name}_p{page_num}_{chunk_id}',
                     'text': current.strip(),
-                    'meta': {'page': page_num, 'source': 'book'}
+                    'meta': {'page': page_num, 'source': book_name}
                 })
                 # Keep overlap
                 current = current[-overlap:] + ' ' + para
@@ -53,9 +54,9 @@ def chunk_text(pages, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
         if current.strip():
             chunk_id = hashlib.md5(current.encode()).hexdigest()[:12]
             chunks.append({
-                'id': f'book_p{page_num}_{chunk_id}',
+                'id': f'{book_name}_p{page_num}_{chunk_id}',
                 'text': current.strip(),
-                'meta': {'page': page_num, 'source': 'book'}
+                'meta': {'page': page_num, 'source': book_name}
             })
     return chunks
 
@@ -96,12 +97,14 @@ def main():
             sys.exit(1)
         api_url = urls[0].rstrip('/')
 
-    print(f'Extracting text from: {pdf_path}')
+    book_name = os.path.splitext(os.path.basename(pdf_path))[0]
+
+    print(f'Extracting text from: {pdf_path} (book: {book_name})')
     pages = extract_text(pdf_path)
     print(f'  {len(pages)} pages extracted')
 
     print(f'Chunking (size={chunk_size}, overlap={CHUNK_OVERLAP})...')
-    chunks = chunk_text(pages, chunk_size=chunk_size)
+    chunks = chunk_text(pages, book_name, chunk_size=chunk_size)
     print(f'  {len(chunks)} chunks created')
 
     if dry_run:
@@ -112,6 +115,13 @@ def main():
 
     print('Ingesting...')
     ingest(chunks, api_url)
+
+    # Save manifest for future deletion
+    manifest_path = f'{pdf_path}.manifest.json'
+    ids = [c['id'] for c in chunks]
+    with open(manifest_path, 'w') as f:
+        json.dump({'source': book_name, 'ids': ids, 'count': len(ids)}, f)
+    print(f'  Manifest saved: {manifest_path} ({len(ids)} IDs)')
     print('Done!')
 
 if __name__ == '__main__':

@@ -255,6 +255,13 @@ app.post('/api/knowledge/ingest', async (c) => {
   return c.json({ ok: true, count: vectors.length })
 })
 
+app.post('/api/knowledge/delete', async (c) => {
+  const { ids } = await c.req.json()
+  if (!ids?.length) return c.json({ error: 'No IDs provided' }, 400)
+  await c.env.VECTORIZE.deleteByIds(ids)
+  return c.json({ ok: true, deleted: ids.length })
+})
+
 app.post('/api/ask', async (c) => {
   const { question } = await c.req.json()
   if (!question) return c.json({ error: 'No question provided' }, 400)
