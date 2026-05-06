@@ -49,7 +49,7 @@ export default function CalendarPage() {
 
   useEffect(() => { api.getSettings().then(s => setDueDate(s.dueDate || null)) }, [])
   const [activeTitle, setActiveTitle] = useState('')
-  const { data, loading, error, getDayData, refreshDay, retry } = useCalendarData()
+  const { data, loading, error, getDayData, retry } = useCalendarData(weekStart)
 
   const weekEnd = new Date(weekStart)
   weekEnd.setDate(weekStart.getDate() + 6)
@@ -73,7 +73,6 @@ export default function CalendarPage() {
     setActiveKey(key)
     const d = new Date(key + 'T00:00:00')
     setActiveTitle(d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }))
-    refreshDay(key)
   }
 
   return (
@@ -96,7 +95,7 @@ export default function CalendarPage() {
         <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out rounded-xl m-2 border ${TRIMESTER_COLORS[getTrimester(dueDate, weekStart.getFullYear(), weekStart.getMonth())] || 'bg-surface border-transparent'}`}>
           {loading ? <LoadingSpinner /> : error ? <ErrorMessage message={error} onRetry={retry} /> : <CalendarGrid weekStart={weekStart} data={data} onDayClick={openDay} />}
         </div>
-        <DayPanel isOpen={!!activeKey} dateKey={activeKey || ''} title={activeTitle} dayData={getDayData(activeKey || '')} onRefresh={() => refreshDay(activeKey)} onClose={() => setActiveKey(null)} week={getWeekForDate(dueDate, activeKey)} />
+        <DayPanel isOpen={!!activeKey} dateKey={activeKey || ''} title={activeTitle} dayData={getDayData(activeKey || '')} onRefresh={retry} onClose={() => setActiveKey(null)} week={getWeekForDate(dueDate, activeKey)} />
       </div>
     </div>
   )

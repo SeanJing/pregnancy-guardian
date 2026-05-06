@@ -22,19 +22,24 @@ app.use('/api/*', async (c, next) => {
 // --- Calendar (aggregated) ---
 app.get('/api/calendar', async (c) => {
   const db = c.env.DB
+  const from = c.req.query('from')
+  const to = c.req.query('to')
   const data = {}
   const ensure = (d) => { if (!data[d]) data[d] = { todos: [], diet: {}, monitor: {}, exercises: [] } }
 
-  for (const r of (await db.prepare('SELECT id, date, text, done FROM todos ORDER BY id').all()).results) {
+  const where = (from && to) ? ' WHERE date >= ? AND date <= ?' : ''
+  const params = (from && to) ? [from, to] : []
+
+  for (const r of (await db.prepare(`SELECT id, date, text, done FROM todos${where} ORDER BY id`).bind(...params).all()).results) {
     ensure(r.date); data[r.date].todos.push({ id: r.id, text: r.text, done: !!r.done })
   }
-  for (const r of (await db.prepare('SELECT id, date, meal, name, instructions FROM diet ORDER BY id').all()).results) {
+  for (const r of (await db.prepare(`SELECT id, date, meal, name, instructions FROM diet${where} ORDER BY id`).bind(...params).all()).results) {
     ensure(r.date); data[r.date].diet[r.meal] = { id: r.id, name: r.name, instructions: r.instructions }
   }
-  for (const r of (await db.prepare('SELECT id, date, metric, value FROM monitor ORDER BY id').all()).results) {
+  for (const r of (await db.prepare(`SELECT id, date, metric, value FROM monitor${where} ORDER BY id`).bind(...params).all()).results) {
     ensure(r.date); data[r.date].monitor[r.metric] = { id: r.id, value: r.value }
   }
-  for (const r of (await db.prepare('SELECT id, date, activity, steps, duration FROM exercises ORDER BY id').all()).results) {
+  for (const r of (await db.prepare(`SELECT id, date, activity, steps, duration FROM exercises${where} ORDER BY id`).bind(...params).all()).results) {
     ensure(r.date); data[r.date].exercises.push({ id: r.id, activity: r.activity, steps: r.steps, duration: r.duration })
   }
   return c.json(data)

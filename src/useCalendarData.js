@@ -3,25 +3,26 @@ import { api } from './api'
 
 const EMPTY = { todos: [], diet: {}, monitor: {}, exercises: [] }
 
-export function useCalendarData() {
+function formatDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+export function useCalendarData(weekStart) {
   const [data, setData] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const from = formatDate(weekStart)
+  const to = (() => { const d = new Date(weekStart); d.setDate(d.getDate() + 6); return formatDate(d) })()
+
   const load = useCallback(() => {
     setLoading(true); setError(null)
-    api.getCalendar().then(d => { setData(d); setLoading(false) }).catch(e => { setError(e.message); setLoading(false) })
-  }, [])
+    api.getCalendar(from, to).then(d => { setData(d); setLoading(false) }).catch(e => { setError(e.message); setLoading(false) })
+  }, [from, to])
 
   useEffect(load, [load])
 
   const getDayData = useCallback((key) => data[key] || EMPTY, [data])
 
-  const refreshDay = useCallback(async (key) => {
-    if (!key) return
-    const fresh = await api.getDay(key)
-    setData(prev => ({ ...prev, [key]: fresh }))
-  }, [])
-
-  return { data, loading, error, getDayData, refreshDay, retry: load }
+  return { data, loading, error, getDayData, retry: load }
 }

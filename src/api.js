@@ -17,6 +17,7 @@ async function cachedGet(url) {
   return data
 }
 
+function invalidateCalendar() { Object.keys(cache).filter(k => k.startsWith('/calendar')).forEach(k => delete cache[k]) }
 function invalidate(url) { delete cache[url] }
 
 function jsonBody(data) {
@@ -29,25 +30,24 @@ export const api = {
   saveSettings: (data) => { invalidate('/settings'); return json('/settings', jsonBody(data)) },
 
   // Calendar
-  getCalendar: () => cachedGet('/calendar'),
-  invalidateCalendar: () => invalidate('/calendar'),
+  getCalendar: (from, to) => cachedGet(`/calendar?from=${from}&to=${to}`),
   getDay: (date) => json(`/calendar/${date}`),
 
   // Todos
-  createTodo: (date, text) => { invalidate('/calendar'); return json('/todos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date, text, done: false }) }) },
-  updateTodo: (id, data) => { invalidate('/calendar'); return json(`/todos/${id}`, jsonBody(data)) },
-  deleteTodo: (id) => { invalidate('/calendar'); return json(`/todos/${id}`, { method: 'DELETE' }) },
+  createTodo: (date, text) => { invalidateCalendar(); return json('/todos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date, text, done: false }) }) },
+  updateTodo: (id, data) => { invalidateCalendar(); return json(`/todos/${id}`, jsonBody(data)) },
+  deleteTodo: (id) => { invalidateCalendar(); return json(`/todos/${id}`, { method: 'DELETE' }) },
 
   // Diet
-  saveDiet: (date, meal, data) => { invalidate('/calendar'); return json(`/diet/${date}/${meal}`, jsonBody(data)) },
+  saveDiet: (date, meal, data) => { invalidateCalendar(); return json(`/diet/${date}/${meal}`, jsonBody(data)) },
 
   // Monitor
-  saveMonitor: (date, metric, value) => { invalidate('/calendar'); return json(`/monitor/${date}/${metric}`, jsonBody({ value })) },
+  saveMonitor: (date, metric, value) => { invalidateCalendar(); return json(`/monitor/${date}/${metric}`, jsonBody({ value })) },
 
   // Exercises
-  createExercise: (data) => { invalidate('/calendar'); return json('/exercises', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }) },
-  updateExercise: (id, data) => { invalidate('/calendar'); return json(`/exercises/${id}`, jsonBody(data)) },
-  deleteExercise: (id) => { invalidate('/calendar'); return json(`/exercises/${id}`, { method: 'DELETE' }) },
+  createExercise: (data) => { invalidateCalendar(); return json('/exercises', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }) },
+  updateExercise: (id, data) => { invalidateCalendar(); return json(`/exercises/${id}`, jsonBody(data)) },
+  deleteExercise: (id) => { invalidateCalendar(); return json(`/exercises/${id}`, { method: 'DELETE' }) },
 
   // Gallery
   getGallery: () => cachedGet('/gallery'),
