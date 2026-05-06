@@ -51,6 +51,8 @@ export default function GalleryPage() {
             <svg className="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"/></svg>
             <p className="text-sm">No photos yet. Tap "Add Photos" to get started.</p>
           </div>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-ink/40 text-sm py-16">No results for "{search}"</p>
         ) : (
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {filtered.map((p, i) => (
