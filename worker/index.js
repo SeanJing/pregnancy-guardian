@@ -271,7 +271,7 @@ app.post('/api/ask', async (c) => {
     ]
   })
 
-  return c.json({ answer: response.response, sources: results.matches.map(m => ({ week: m.metadata.week, score: m.score })) })
+  return c.json({ answer: response.response || response.result || JSON.stringify(response), sources: results.matches.map(m => ({ week: m.metadata.week, score: m.score })) })
 })
 
 export default app
