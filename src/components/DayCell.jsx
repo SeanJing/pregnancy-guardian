@@ -8,7 +8,7 @@ export default function DayCell({ day, isToday, hasContent, contentFlags, onClic
       <div className="p-2 text-center">
         <span className={`text-sm ${isToday ? 'text-primary' : ''}`}>{day}</span>
       </div>
-      <div className="px-1.5 pb-2 min-h-16 flex flex-col gap-0.5">
+      <div className="px-1.5 pb-2 min-h-16 flex flex-col items-center gap-0.5">
         {hasContent && (
           <>
             {contentFlags.diet && <span className="text-xs text-cta font-medium">Diet</span>}
