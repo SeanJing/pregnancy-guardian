@@ -2,13 +2,6 @@ import { useState, useEffect } from 'react'
 import { api } from '../api'
 import WeekTracker from '../components/WeekTracker'
 
-  const due = new Date(dueDate + 'T00:00:00')
-  const conception = new Date(due)
-  conception.setDate(conception.getDate() - 280)
-  const days = Math.floor((new Date() - conception) / 86400000)
-  return Math.min(Math.max(Math.floor(days / 7) + 1, 1), 40)
-}
-
 export default function HomePage({ onNavigate }) {
   const [dueDate, setDueDate] = useState(null)
   const [input, setInput] = useState('')
