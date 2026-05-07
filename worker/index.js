@@ -271,12 +271,6 @@ app.post('/api/ask', async (c) => {
 
   // Search for relevant chunks
   const results = await c.env.VECTORIZE.query(data[0], { topK: 5, returnMetadata: 'all' })
-
-  // Debug: return raw metadata structure
-  if (c.req.query('debug')) {
-    return c.json({ matches: results.matches.map(m => ({ id: m.id, score: m.score, metadata: m.metadata })) })
-  }
-
   const context = results.matches.map(m => m.metadata.text).join('\n\n')
 
   if (!context) return c.json({ answer: "I don't have enough information to answer that question." })
