@@ -86,7 +86,11 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
         </div>
       </div>
 
-      {!activeKey && week && <WeeklyArticle week={week} />}
+      {week && (
+        <div className={`transition-all duration-1000 ease-in-out ${activeKey ? 'opacity-0 max-h-0 overflow-hidden' : 'opacity-100 max-h-[2000px]'}`}>
+          <WeeklyArticle week={week} />
+        </div>
+      )}
     </>
   )
 }
