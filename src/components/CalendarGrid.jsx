@@ -3,6 +3,7 @@ import DietSection from './DietSection'
 import MonitorSection from './MonitorSection'
 import ExerciseSection from './ExerciseSection'
 import TodoSection from './TodoSection'
+import WeeklyArticle from './WeeklyArticle'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -76,6 +77,8 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
           </div>
         </div>
       )}
+
+      {!activeKey && week && <WeeklyArticle week={week} />}
     </>
   )
 }

@@ -36,6 +36,18 @@ function getWeekForDate(dueDate, dateStr) {
   return week >= 1 && week <= 40 ? week : null
 }
 
+function getTrimesterWeek(dueDate, weekStart) {
+  if (!dueDate) return null
+  const due = new Date(dueDate + 'T00:00:00')
+  const conception = new Date(due)
+  conception.setDate(conception.getDate() - 280)
+  const mid = new Date(weekStart)
+  mid.setDate(mid.getDate() + 3)
+  const days = Math.floor((mid - conception) / 86400000)
+  const week = Math.floor(days / 7) + 1
+  return week >= 1 && week <= 40 ? week : null
+}
+
 export default function CalendarPage() {
   const now = new Date()
   const [weekStart, setWeekStart] = useState(() => {
@@ -90,7 +102,7 @@ export default function CalendarPage() {
       </header>
       <div className="flex flex-1 overflow-hidden">
         <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out rounded-xl m-2 border ${TRIMESTER_COLORS[getTrimester(dueDate, weekStart.getFullYear(), weekStart.getMonth())] || 'bg-surface border-transparent'}`}>
-          {loading ? <LoadingSpinner /> : error ? <ErrorMessage message={error} onRetry={retry} /> : <CalendarGrid weekStart={weekStart} data={data} activeKey={activeKey} onDayClick={openDay} onClose={() => setActiveKey(null)} getDayData={getDayData} updateDay={updateDay} week={getWeekForDate(dueDate, activeKey)} />}
+          {loading ? <LoadingSpinner /> : error ? <ErrorMessage message={error} onRetry={retry} /> : <CalendarGrid weekStart={weekStart} data={data} activeKey={activeKey} onDayClick={openDay} onClose={() => setActiveKey(null)} getDayData={getDayData} updateDay={updateDay} week={getWeekForDate(dueDate, activeKey) || getTrimesterWeek(dueDate, weekStart)} />}
         </div>
       </div>
     </div>
