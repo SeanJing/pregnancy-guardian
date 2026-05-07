@@ -70,7 +70,7 @@ export default function AssistantPage() {
                   <summary className="font-medium cursor-pointer">Sources ({msg.sources.length})</summary>
                   <div className="mt-1 space-y-1">
                     {msg.sources.map((s, i) => (
-                      <p key={i}>{s.week ? `Week ${s.week}` : s.page ? `Page ${s.page}` : ''}{s.text ? ` — ${s.text}…` : ''}</p>
+                      <p key={i}><span className="font-medium">{s.source}</span>{s.text ? ` — ${s.text}…` : ''}</p>
                     ))}
                   </div>
                 </details>

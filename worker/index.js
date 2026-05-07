@@ -287,7 +287,7 @@ app.post('/api/ask', async (c) => {
   // Append sources as final SSE event
   const matchTexts = results.matches.map(m => (m.metadata?.text || '').slice(0, 100).replace(/[\n\r\t]/g, ' '))
   const sources = JSON.stringify(results.matches.map((m, i) => ({
-    page: m.metadata?.page,
+    source: m.metadata?.source,
     score: m.score,
     text: matchTexts[i]
   })))
