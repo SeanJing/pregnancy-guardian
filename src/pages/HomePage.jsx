@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
 import WeekTracker from '../components/WeekTracker'
-import WeeklyGuide from '../components/WeeklyGuide'
 
-function getCurrentWeek(dueDate) {
   const due = new Date(dueDate + 'T00:00:00')
   const conception = new Date(due)
   conception.setDate(conception.getDate() - 280)
@@ -79,7 +77,6 @@ export default function HomePage({ onNavigate }) {
         {dueDate && (
           <div className="mt-8 flex flex-col items-center gap-4">
             <WeekTracker dueDate={dueDate} />
-            <WeeklyGuide week={getCurrentWeek(dueDate)} />
             <button onClick={clearDueDate} className="mt-2 text-xs text-ink/30 hover:text-ink/50 cursor-pointer transition-colors duration-150">Change due date</button>
           </div>
         )}
