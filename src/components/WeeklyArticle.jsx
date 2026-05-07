@@ -1,8 +1,16 @@
+import { useState, useEffect } from 'react'
 import Markdown from 'react-markdown'
-import articles from '../data/weekly-articles.json'
 
 export default function WeeklyArticle({ week }) {
-  const content = articles[String(week)]
+  const [content, setContent] = useState(null)
+
+  useEffect(() => {
+    if (!week) return
+    import('../data/weekly-articles.json').then(m => {
+      setContent(m.default[String(week)] || null)
+    })
+  }, [week])
+
   if (!content) return null
 
   return (
