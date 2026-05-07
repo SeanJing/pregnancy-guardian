@@ -59,24 +59,26 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
         })}
       </div>
 
-      {activeKey && (
-        <div className="mt-3 bg-white rounded-xl border border-gray-200 overflow-hidden transition-all duration-500 ease-in-out">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-            <h3 className="text-sm font-semibold font-heading text-ink">
-              {new Date(activeKey + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-            </h3>
-            <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors duration-150" aria-label="Close">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-          </div>
-          <div key={version} className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <DietSection diet={dayData.diet || {}} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
-            <MonitorSection monitor={dayData.monitor || {}} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
-            <ExerciseSection exercises={dayData.exercises || []} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
-            <TodoSection todos={dayData.todos || []} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
-          </div>
-        </div>
-      )}
+      <div className={`mt-3 bg-white rounded-xl border border-gray-200 overflow-hidden transition-all duration-500 ease-in-out origin-top ${activeKey ? 'max-h-[2000px] opacity-100 scale-y-100' : 'max-h-0 opacity-0 scale-y-95 border-transparent'}`}>
+        {activeKey && (
+          <>
+            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+              <h3 className="text-sm font-semibold font-heading text-ink">
+                {new Date(activeKey + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              </h3>
+              <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors duration-150" aria-label="Close">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div key={version} className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <DietSection diet={dayData.diet || {}} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
+              <MonitorSection monitor={dayData.monitor || {}} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
+              <ExerciseSection exercises={dayData.exercises || []} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
+              <TodoSection todos={dayData.todos || []} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
+            </div>
+          </>
+        )}
+      </div>
 
       {!activeKey && week && <WeeklyArticle week={week} />}
     </>
