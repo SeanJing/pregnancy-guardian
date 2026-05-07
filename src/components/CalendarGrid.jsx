@@ -59,7 +59,7 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
         })}
       </div>
 
-      <div className={`mt-3 bg-white rounded-xl border border-gray-200 overflow-hidden transition-all duration-500 ease-in-out origin-top ${activeKey ? 'max-h-[2000px] opacity-100 scale-y-100' : 'max-h-0 opacity-0 scale-y-95 border-transparent'}`}>
+      <div className={`mt-3 bg-white rounded-xl border border-gray-200 overflow-hidden transition-all duration-700 ease-in-out origin-top ${activeKey ? 'max-h-[2000px] opacity-100 scale-y-100' : 'max-h-0 opacity-0 scale-y-95 border-transparent'}`}>
         {activeKey && (
           <>
             <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
