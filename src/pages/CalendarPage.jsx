@@ -54,6 +54,7 @@ export default function CalendarPage() {
   const label = `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
 
   const changeWeek = (dir) => {
+    setActiveKey(null)
     setWeekStart(prev => {
       const d = new Date(prev)
       d.setDate(d.getDate() + dir * 7)
