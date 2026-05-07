@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@tailwindcss/typography";
 
 /* Varela Round - headings */
 @font-face { font-family: 'Varela Round'; font-style: normal; font-weight: 400; font-display: swap; src: url(./fonts/varela-round-400.ttf) format('truetype'); }
