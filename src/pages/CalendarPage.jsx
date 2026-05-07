@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import CalendarGrid from '../components/CalendarGrid'
-import DayPanel from '../components/DayPanel'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorMessage from '../components/ErrorMessage'
 import { useCalendarData } from '../useCalendarData'
@@ -48,7 +47,6 @@ export default function CalendarPage() {
   const [dueDate, setDueDate] = useState(null)
 
   useEffect(() => { api.getSettings().then(s => setDueDate(s.dueDate || null)) }, [])
-  const [activeTitle, setActiveTitle] = useState('')
   const { data, loading, error, getDayData, retry, updateDay } = useCalendarData(weekStart)
 
   const weekEnd = new Date(weekStart)
@@ -70,9 +68,7 @@ export default function CalendarPage() {
   }
 
   const openDay = (day, key) => {
-    setActiveKey(key)
-    const d = new Date(key + 'T00:00:00')
-    setActiveTitle(d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }))
+    setActiveKey(prev => prev === key ? null : key)
   }
 
   return (
@@ -93,9 +89,8 @@ export default function CalendarPage() {
       </header>
       <div className="flex flex-1 overflow-hidden">
         <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out rounded-xl m-2 border ${TRIMESTER_COLORS[getTrimester(dueDate, weekStart.getFullYear(), weekStart.getMonth())] || 'bg-surface border-transparent'}`}>
-          {loading ? <LoadingSpinner /> : error ? <ErrorMessage message={error} onRetry={retry} /> : <CalendarGrid weekStart={weekStart} data={data} onDayClick={openDay} />}
+          {loading ? <LoadingSpinner /> : error ? <ErrorMessage message={error} onRetry={retry} /> : <CalendarGrid weekStart={weekStart} data={data} activeKey={activeKey} onDayClick={openDay} onClose={() => setActiveKey(null)} getDayData={getDayData} updateDay={updateDay} week={getWeekForDate(dueDate, activeKey)} />}
         </div>
-        <DayPanel isOpen={!!activeKey} dateKey={activeKey || ''} title={activeTitle} dayData={getDayData(activeKey || '')} updateDay={(updater) => updateDay(activeKey, updater)} onClose={() => setActiveKey(null)} week={getWeekForDate(dueDate, activeKey)} />
       </div>
     </div>
   )

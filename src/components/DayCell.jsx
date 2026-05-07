@@ -1,8 +1,8 @@
-export default function DayCell({ day, isToday, hasContent, contentFlags, onClick }) {
+export default function DayCell({ day, isToday, isActive, hasContent, contentFlags, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`rounded-lg text-left cursor-pointer transition-colors duration-150 hover:bg-primary/10 active:scale-95 ${isToday ? 'bg-primary/10 font-bold' : ''}`}
+      className={`rounded-lg text-left cursor-pointer transition-colors duration-150 hover:bg-primary/10 active:scale-95 ${isActive ? 'ring-2 ring-primary bg-primary/5' : ''} ${isToday ? 'bg-primary/10 font-bold' : ''}`}
       aria-label={`Day ${day}`}
     >
       <div className="p-2 text-center">
