@@ -70,7 +70,7 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
             </button>
           </div>
           <div key={version} className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <DietSection diet={dayData.diet || {}} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} week={week} />
+            <DietSection diet={dayData.diet || {}} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
             <MonitorSection monitor={dayData.monitor || {}} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
             <ExerciseSection exercises={dayData.exercises || []} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
             <TodoSection todos={dayData.todos || []} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
