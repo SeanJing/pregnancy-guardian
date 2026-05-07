@@ -271,6 +271,12 @@ app.post('/api/ask', async (c) => {
 
   // Search for relevant chunks
   const results = await c.env.VECTORIZE.query(data[0], { topK: 5, returnMetadata: 'all' })
+
+  // Debug: return raw metadata structure
+  if (c.req.query('debug')) {
+    return c.json({ matches: results.matches.map(m => ({ id: m.id, score: m.score, metadata: m.metadata })) })
+  }
+
   const context = results.matches.map(m => m.metadata.text).join('\n\n')
 
   if (!context) return c.json({ answer: "I don't have enough information to answer that question." })
@@ -285,11 +291,12 @@ app.post('/api/ask', async (c) => {
   })
 
   // Append sources as final SSE event
-  const sources = JSON.stringify(results.matches.map(m => {
-    const meta = m.metadata || {}
-    const snippet = (meta.text || '').slice(0, 100).replace(/[\n\r\t]/g, ' ')
-    return { week: meta.week, page: meta.page, score: m.score, text: snippet }
-  }))
+  const matchTexts = results.matches.map(m => (m.metadata?.text || '').slice(0, 100).replace(/[\n\r\t]/g, ' '))
+  const sources = JSON.stringify(results.matches.map((m, i) => ({
+    page: m.metadata?.page,
+    score: m.score,
+    text: matchTexts[i]
+  })))
   const { readable, writable } = new TransformStream()
   const writer = writable.getWriter()
   const encoder = new TextEncoder()
