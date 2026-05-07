@@ -285,7 +285,11 @@ app.post('/api/ask', async (c) => {
   })
 
   // Append sources as final SSE event
-  const sources = JSON.stringify(results.matches.map(m => ({ week: m.metadata.week, page: m.metadata.page, score: m.score, text: m.metadata.text?.slice(0, 100) })))
+  const sources = JSON.stringify(results.matches.map(m => {
+    const meta = m.metadata || {}
+    const snippet = (meta.text || '').slice(0, 100).replace(/[\n\r\t]/g, ' ')
+    return { week: meta.week, page: meta.page, score: m.score, text: snippet }
+  }))
   const { readable, writable } = new TransformStream()
   const writer = writable.getWriter()
   const encoder = new TextEncoder()
