@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import DayCell from './DayCell'
 import DietSection from './DietSection'
 import MonitorSection from './MonitorSection'
@@ -27,8 +28,11 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
   const today = new Date()
   const todayKey = dayKey(today)
   const dates = getWeekDates(weekStart)
-  const dayData = getDayData(activeKey || '')
-  const version = activeKey + JSON.stringify(dayData)
+  const lastKeyRef = useRef(activeKey)
+  if (activeKey) lastKeyRef.current = activeKey
+  const displayKey = activeKey || lastKeyRef.current
+  const dayData = getDayData(displayKey || '')
+  const version = displayKey + JSON.stringify(dayData)
 
   return (
     <>
@@ -64,18 +68,18 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
           <div className="bg-white rounded-xl border border-gray-200">
             <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
               <h3 className="text-sm font-semibold font-heading text-ink">
-                {activeKey ? new Date(activeKey + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : ''}
+                {displayKey ? new Date(displayKey + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : ''}
               </h3>
               <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors duration-150" aria-label="Close">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
-            {activeKey && (
+            {displayKey && (
               <div key={version} className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <DietSection diet={dayData.diet || {}} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
-                <MonitorSection monitor={dayData.monitor || {}} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
-                <ExerciseSection exercises={dayData.exercises || []} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
-                <TodoSection todos={dayData.todos || []} date={activeKey} updateDay={(updater) => updateDay(activeKey, updater)} />
+                <DietSection diet={dayData.diet || {}} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
+                <MonitorSection monitor={dayData.monitor || {}} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
+                <ExerciseSection exercises={dayData.exercises || []} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
+                <TodoSection todos={dayData.todos || []} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
               </div>
             )}
           </div>
