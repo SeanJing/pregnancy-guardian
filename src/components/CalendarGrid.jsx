@@ -52,7 +52,6 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
               isToday={isToday}
               isActive={isActive}
               hasContent={hasContent}
-              contentFlags={{ todos: dd.todos.length > 0, diet: hasDiet, monitor: hasMonitor, exercises: hasExercises }}
               onClick={() => onDayClick(date.getDate(), key)}
             />
           )
