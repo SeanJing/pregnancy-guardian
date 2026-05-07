@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import HomePage from './pages/HomePage'
 import CalendarPage from './pages/CalendarPage'
@@ -6,14 +6,29 @@ import GalleryPage from './pages/GalleryPage'
 import DocumentsPage from './pages/DocumentsPage'
 import AssistantPage from './pages/AssistantPage'
 
+function getHash() {
+  return window.location.hash.replace('#/', '') || 'home'
+}
 
 export default function App() {
-  const [page, setPage] = useState('home')
-  const [visited, setVisited] = useState({})
+  const [page, setPage] = useState(getHash)
+  const [visited, setVisited] = useState(() => {
+    const h = getHash()
+    return h !== 'home' ? { [h]: true } : {}
+  })
+
+  useEffect(() => {
+    const onHash = () => {
+      const p = getHash()
+      setPage(p)
+      if (p !== 'home') setVisited(prev => ({ ...prev, [p]: true }))
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
 
   const navigate = (p) => {
-    setPage(p)
-    if (p !== 'home') setVisited(prev => ({ ...prev, [p]: true }))
+    window.location.hash = p === 'home' ? '/' : `/${p}`
   }
 
   const hasVisited = Object.keys(visited).length > 0
