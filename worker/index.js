@@ -278,7 +278,7 @@ app.post('/api/ask', async (c) => {
   // Ask LLM with streaming
   const stream = await c.env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
     messages: [
-      { role: 'system', content: `You are a helpful pregnancy health assistant. Answer based ONLY on the following knowledge. If the answer is not in the knowledge, say so. Be concise, warm, and professional.\n\nKnowledge:\n${context}` },
+      { role: 'system', content: `You are a warm, professional pregnancy health assistant. Prioritize the following knowledge when answering. You may supplement with general pregnancy knowledge if the provided context doesn't fully cover the question, but clearly distinguish between book-based and general advice.\n\nKnowledge:\n${context}` },
       { role: 'user', content: question }
     ],
     stream: true
