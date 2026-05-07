@@ -281,7 +281,8 @@ app.post('/api/ask', async (c) => {
       { role: 'system', content: `You are a warm, professional pregnancy health assistant. Prioritize the following knowledge when answering. You may supplement with general pregnancy knowledge if the provided context doesn't fully cover the question, but clearly distinguish between book-based and general advice.\n\nKnowledge:\n${context}` },
       { role: 'user', content: question }
     ],
-    stream: true
+    stream: true,
+    max_tokens: 2048
   })
 
   // Append sources as final SSE event
