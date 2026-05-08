@@ -235,6 +235,16 @@ app.get('/uploads/:filename', async (c) => {
   return new Response(obj.body, { headers })
 })
 
+// --- Trends ---
+app.get('/api/trends/:metric', async (c) => {
+  const db = c.env.DB
+  const metric = c.req.param('metric')
+  const from = c.req.query('from') || '2000-01-01'
+  const to = c.req.query('to') || '2099-12-31'
+  const rows = (await db.prepare('SELECT date, value FROM monitor WHERE metric=? AND date>=? AND date<=? ORDER BY date').bind(metric, from, to).all()).results
+  return c.json(rows)
+})
+
 // --- Knowledge Base (RAG) ---
 app.post('/api/knowledge/ingest', async (c) => {
   const { chunks } = await c.req.json() // [{ id, text, meta }]

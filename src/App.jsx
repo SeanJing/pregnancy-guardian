@@ -5,6 +5,7 @@ import CalendarPage from './pages/CalendarPage'
 import GalleryPage from './pages/GalleryPage'
 import DocumentsPage from './pages/DocumentsPage'
 import AssistantPage from './pages/AssistantPage'
+import TrendsPage from './pages/TrendsPage'
 
 function getHash() {
   return window.location.hash.replace('#/', '') || 'home'
@@ -49,6 +50,7 @@ export default function App() {
             {visited.gallery && <div className={page === 'gallery' ? '' : 'hidden'}><GalleryPage /></div>}
             {visited.documents && <div className={page === 'documents' ? '' : 'hidden'}><DocumentsPage /></div>}
             {visited.assistant && <div className={page === 'assistant' ? '' : 'hidden'}><AssistantPage /></div>}
+            {visited.trends && <div className={page === 'trends' ? '' : 'hidden'}><TrendsPage /></div>}
           </main>
         </div>
       )}

@@ -60,6 +60,9 @@ export const api = {
   uploadDocuments: (files) => { invalidate('/documents'); const fd = new FormData(); files.forEach(f => fd.append('files', f)); return json('/documents', { method: 'POST', body: fd }) },
   deleteDocument: (id) => { invalidate('/documents'); return json(`/documents/${id}`, { method: 'DELETE' }) },
 
+  // Trends
+  getTrends: (metric, from, to) => json(`/trends/${metric}?from=${from}&to=${to}`),
+
   // Search
   search: (q) => json(`/search?q=${encodeURIComponent(q)}`),
 
