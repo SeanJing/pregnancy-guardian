@@ -54,11 +54,22 @@ export default function GalleryPage() {
         ) : filtered.length === 0 ? (
           <p className="text-center text-ink/40 text-sm py-16">No results for "{search}"</p>
         ) : (
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {filtered.map((p, i) => (
-              <button key={p.id} onClick={() => setViewing(i)} className="aspect-square overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity duration-150">
-                <img src={UPLOADS_BASE + p.url} alt={p.name} className="w-full h-full object-cover" />
-              </button>
+          <div className="space-y-6">
+            {Object.entries(filtered.reduce((groups, p) => {
+              const day = p.date?.split(' ')[0] || p.date?.split('T')[0] || 'Unknown'
+              ;(groups[day] ||= []).push(p)
+              return groups
+            }, {})).sort((a, b) => b[0].localeCompare(a[0])).map(([date, items]) => (
+              <div key={date}>
+                <h3 className="text-xs font-semibold text-ink/50 uppercase tracking-wide mb-2">{date}</h3>
+                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                  {items.map(p => (
+                    <button key={p.id} onClick={() => setViewing(photos.indexOf(p))} className="aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity duration-150">
+                      <img src={UPLOADS_BASE + p.url} alt={p.name} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
