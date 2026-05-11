@@ -19,6 +19,35 @@ struct DayDetailView: View {
     }
 }
 
+struct DayDetailFullView: View {
+    let date: String
+    let dayData: DayData
+    let onRefresh: () async -> Void
+
+    private var title: String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        guard let d = f.date(from: date) else { return date }
+        f.dateFormat = "EEEE, MMM d"
+        return f.string(from: d)
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                DietSectionView(date: date, diet: dayData.diet)
+                MonitorSectionView(date: date, monitor: dayData.monitor)
+                ExerciseSectionView(date: date, exercises: dayData.exercises, onRefresh: onRefresh)
+                TodoSectionView(date: date, todos: dayData.todos, onRefresh: onRefresh)
+            }
+            .padding()
+        }
+        .background(Color("Surface"))
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
 // MARK: - Diet Section
 
 struct DietSectionView: View {

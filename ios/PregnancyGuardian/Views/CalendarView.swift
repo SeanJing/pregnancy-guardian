@@ -60,7 +60,7 @@ struct CalendarView: View {
                             let hasData = data[key] != nil
 
                             Button {
-                                selectedDate = selectedDate == key ? nil : key
+                                selectedDate = key
                             } label: {
                                 VStack(spacing: 4) {
                                     Text(dayName(date))
@@ -87,11 +87,8 @@ struct CalendarView: View {
                     }
                     .padding(.horizontal)
 
-                    // Day detail or weekly guide
-                    if let key = selectedDate, let dayData = data[key] ?? DayData(todos: [], diet: [:], monitor: [:], exercises: []) as DayData? {
-                        DayDetailView(date: key, dayData: dayData, onRefresh: { await loadWeek() })
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    } else if let week = currentPregnancyWeek {
+                    // Weekly guide (shown when no day selected)
+                    if selectedDate == nil, let week = currentPregnancyWeek {
                         WeeklyGuideView(week: week)
                     }
                 }
@@ -99,6 +96,10 @@ struct CalendarView: View {
             }
             .background(Color("Surface"))
             .navigationTitle("Calendar")
+            .navigationDestination(item: $selectedDate) { key in
+                let dayData = data[key] ?? DayData(todos: [], diet: [:], monitor: [:], exercises: [])
+                DayDetailFullView(date: key, dayData: dayData, onRefresh: { await loadWeek() })
+            }
             .task { await loadWeek() }
         }
     }
