@@ -1,9 +1,11 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct DocumentsView: View {
     @State private var documents: [DocumentItem] = []
     @State private var loading = true
     @State private var search = ""
+    @State private var showFilePicker = false
 
     private let baseURL = "https://pregnancy-guardian-api.hfjingxiao13.workers.dev"
 
@@ -41,6 +43,14 @@ struct DocumentsView: View {
             }
             .searchable(text: $search, prompt: "Search documents")
             .navigationTitle("Documents")
+            .toolbar {
+                Button { showFilePicker = true } label: {
+                    Image(systemName: "plus")
+                }
+            }
+            .fileImporter(isPresented: $showFilePicker, allowedContentTypes: [.pdf, .image, .plainText, .data], allowsMultipleSelection: true) { result in
+                Task { await uploadFiles(result) }
+            }
             .task { await load() }
         }
     }
@@ -62,5 +72,30 @@ struct DocumentsView: View {
         if bytes < 1024 { return "\(bytes) B" }
         if bytes < 1048576 { return "\(bytes / 1024) KB" }
         return "\(bytes / 1048576) MB"
+    }
+
+    private func uploadFiles(_ result: Result<[URL], Error>) async {
+        guard let urls = try? result.get() else { return }
+        for url in urls {
+            guard url.startAccessingSecurityScopedResource() else { continue }
+            defer { url.stopAccessingSecurityScopedResource() }
+            guard let data = try? Data(contentsOf: url) else { continue }
+            let filename = url.lastPathComponent
+            let boundary = UUID().uuidString
+            var request = URLRequest(url: URL(string: "\(baseURL)/api/documents")!)
+            request.httpMethod = "POST"
+            request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+            var body = Data()
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"files\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+            body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+            body.append(data)
+            body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+            request.httpBody = body
+            if let (responseData, _) = try? await URLSession.shared.data(for: request),
+               let items = try? JSONDecoder().decode([DocumentItem].self, from: responseData) {
+                documents.insert(contentsOf: items, at: 0)
+            }
+        }
     }
 }
