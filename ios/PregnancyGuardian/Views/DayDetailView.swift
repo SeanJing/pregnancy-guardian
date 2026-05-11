@@ -70,6 +70,11 @@ struct DietSectionView: View {
                         .textFieldStyle(.roundedBorder)
                         .font(.subheadline)
                         .onSubmit { saveMeal(meal) }
+                    TextField("Instructions / notes", text: .constant(diet[meal]?.instructions ?? ""))
+                        .textFieldStyle(.roundedBorder)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .onSubmit { saveMeal(meal) }
                 }
             }
         }
