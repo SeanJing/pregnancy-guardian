@@ -32,16 +32,15 @@ struct GalleryView: View {
                     LazyVStack(alignment: .leading, spacing: 16) {
                         ForEach(grouped, id: \.0) { date, items in
                             Section {
-                                LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))], spacing: 4) {
+                                LazyVGrid(columns: [GridItem(.flexible(), spacing: 2), GridItem(.flexible(), spacing: 2), GridItem(.flexible(), spacing: 2)], spacing: 2) {
                                     ForEach(items) { photo in
                                         AsyncImage(url: URL(string: "\(baseURL)\(photo.url)")) { image in
                                             image.resizable().scaledToFill()
                                         } placeholder: {
                                             Color.gray.opacity(0.2)
                                         }
-                                        .frame(width: 120, height: 120)
+                                        .aspectRatio(1, contentMode: .fill)
                                         .clipped()
-                                        .cornerRadius(6)
                                         .onTapGesture { selectedPhoto = photo }
                                     }
                                 }
