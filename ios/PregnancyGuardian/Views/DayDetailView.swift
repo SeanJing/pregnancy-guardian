@@ -29,17 +29,17 @@ struct DietSectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Diet", systemImage: "fork.knife")
-                .font(.caption)
+                .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(Color("Primary"))
             ForEach(meals, id: \.self) { meal in
                 VStack(alignment: .leading, spacing: 4) {
                     Text(meal.capitalized)
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundColor(.secondary)
                     TextField("Meal name", text: .constant(diet[meal]?.name ?? ""))
                         .textFieldStyle(.roundedBorder)
-                        .font(.caption)
+                        .font(.subheadline)
                         .onSubmit { saveMeal(meal) }
                 }
             }
@@ -63,18 +63,18 @@ struct MonitorSectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Monitor", systemImage: "heart.fill")
-                .font(.caption)
+                .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(Color("Primary"))
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 ForEach(metrics, id: \.0) { key, label in
                     VStack(alignment: .leading, spacing: 2) {
                         Text(label)
-                            .font(.caption2)
+                            .font(.caption)
                             .foregroundColor(.secondary)
                         TextField("—", text: .constant(monitor[key]?.value ?? ""))
                             .textFieldStyle(.roundedBorder)
-                            .font(.caption)
+                            .font(.subheadline)
                     }
                 }
             }
@@ -95,13 +95,13 @@ struct ExerciseSectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Exercises", systemImage: "flame.fill")
-                .font(.caption)
+                .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(Color("Primary"))
             ForEach(exercises) { ex in
                 HStack {
                     Text("\(ex.activity) · \(ex.steps) steps · \(ex.duration) min")
-                        .font(.caption)
+                        .font(.subheadline)
                     Spacer()
                     Button { deleteExercise(ex.id) } label: {
                         Image(systemName: "xmark.circle.fill")
@@ -110,11 +110,11 @@ struct ExerciseSectionView: View {
                 }
             }
             HStack(spacing: 4) {
-                TextField("Activity", text: $activity).textFieldStyle(.roundedBorder).font(.caption)
-                TextField("Steps", text: $steps).textFieldStyle(.roundedBorder).font(.caption).frame(width: 60)
-                TextField("Min", text: $duration).textFieldStyle(.roundedBorder).font(.caption).frame(width: 50)
+                TextField("Activity", text: $activity).textFieldStyle(.roundedBorder).font(.subheadline)
+                TextField("Steps", text: $steps).textFieldStyle(.roundedBorder).font(.subheadline).frame(width: 60)
+                TextField("Min", text: $duration).textFieldStyle(.roundedBorder).font(.subheadline).frame(width: 50)
                 Button("Add") { addExercise() }
-                    .font(.caption)
+                    .font(.subheadline)
                     .buttonStyle(.borderedProminent)
                     .tint(Color("Primary"))
             }
@@ -148,7 +148,7 @@ struct TodoSectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Label("To-Dos", systemImage: "checkmark.circle")
-                .font(.caption)
+                .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(Color("Primary"))
             ForEach(todos) { todo in
@@ -158,13 +158,13 @@ struct TodoSectionView: View {
                             .foregroundColor(todo.done ? Color("Primary") : .gray)
                     }
                     Text(todo.text)
-                        .font(.caption)
+                        .font(.subheadline)
                         .strikethrough(todo.done)
                         .foregroundColor(todo.done ? .secondary : .primary)
                     Spacer()
                     Button { deleteTodo(todo.id) } label: {
                         Image(systemName: "trash")
-                            .font(.caption)
+                            .font(.subheadline)
                             .foregroundColor(.red.opacity(0.5))
                     }
                 }
@@ -172,10 +172,10 @@ struct TodoSectionView: View {
             HStack {
                 TextField("Add a task…", text: $newText)
                     .textFieldStyle(.roundedBorder)
-                    .font(.caption)
+                    .font(.subheadline)
                     .onSubmit { addTodo() }
                 Button("Add") { addTodo() }
-                    .font(.caption)
+                    .font(.subheadline)
                     .buttonStyle(.borderedProminent)
                     .tint(Color("Primary"))
             }

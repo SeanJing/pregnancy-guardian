@@ -23,7 +23,7 @@ struct AssistantView: View {
                                         .font(.system(size: 36))
                                         .foregroundColor(.secondary.opacity(0.4))
                                     Text("Ask anything about pregnancy")
-                                        .font(.caption)
+                                        .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
                                 .frame(maxWidth: .infinity)

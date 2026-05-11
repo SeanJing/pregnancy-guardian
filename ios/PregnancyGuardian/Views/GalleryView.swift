@@ -47,7 +47,7 @@ struct GalleryView: View {
                                 }
                             } header: {
                                 Text(date)
-                                    .font(.caption)
+                                    .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal)

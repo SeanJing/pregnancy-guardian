@@ -32,7 +32,7 @@ struct DocumentsView: View {
                                         .font(.subheadline)
                                         .lineLimit(1)
                                     Text("\(formatSize(doc.size)) · \(doc.date?.prefix(10) ?? "")")
-                                        .font(.caption)
+                                        .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
                             }
