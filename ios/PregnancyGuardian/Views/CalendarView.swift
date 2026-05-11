@@ -1,0 +1,122 @@
+import SwiftUI
+
+struct CalendarView: View {
+    @State private var weekStart = Calendar.current.date(from: Calendar.current.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date()))!
+    @State private var data: [String: DayData] = [:]
+    @State private var selectedDate: String?
+    @State private var loading = true
+
+    private var weekDates: [Date] {
+        (0..<7).map { Calendar.current.date(byAdding: .day, value: $0, to: weekStart)! }
+    }
+
+    private var weekLabel: String {
+        let end = Calendar.current.date(byAdding: .day, value: 6, to: weekStart)!
+        let f = DateFormatter()
+        f.dateFormat = "MMM d"
+        let f2 = DateFormatter()
+        f2.dateFormat = "MMM d, yyyy"
+        return "\(f.string(from: weekStart)) – \(f2.string(from: end))"
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Week navigation
+                    HStack {
+                        Button { changeWeek(-1) } label: {
+                            Image(systemName: "chevron.left")
+                        }
+                        Spacer()
+                        Button(weekLabel) { goToday() }
+                            .font(.headline)
+                        Spacer()
+                        Button { changeWeek(1) } label: {
+                            Image(systemName: "chevron.right")
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    // Day cells
+                    HStack(spacing: 4) {
+                        ForEach(weekDates, id: \.self) { date in
+                            let key = dateKey(date)
+                            let isToday = Calendar.current.isDateInToday(date)
+                            let isSelected = key == selectedDate
+                            let hasData = data[key] != nil
+
+                            Button {
+                                selectedDate = selectedDate == key ? nil : key
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Text(dayName(date))
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                    Text("\(Calendar.current.component(.day, from: date))")
+                                        .font(.body)
+                                        .fontWeight(isToday ? .bold : .regular)
+                                        .foregroundColor(isToday ? Color("Primary") : .primary)
+                                    if hasData {
+                                        Circle()
+                                            .fill(Color("Primary"))
+                                            .frame(width: 5, height: 5)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                                .background(isSelected ? Color("Primary").opacity(0.1) : isToday ? Color("Primary").opacity(0.05) : .clear)
+                                .cornerRadius(8)
+                                .overlay(isSelected ? RoundedRectangle(cornerRadius: 8).stroke(Color("Primary"), lineWidth: 2) : nil)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    // Day detail
+                    if let key = selectedDate, let dayData = data[key] ?? DayData(todos: [], diet: [:], monitor: [:], exercises: []) as DayData? {
+                        DayDetailView(date: key, dayData: dayData, onRefresh: { await loadWeek() })
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+                .padding(.vertical)
+            }
+            .background(Color("Surface"))
+            .navigationTitle("Calendar")
+            .task { await loadWeek() }
+        }
+    }
+
+    private func loadWeek() async {
+        let from = dateKey(weekStart)
+        let to = dateKey(Calendar.current.date(byAdding: .day, value: 6, to: weekStart)!)
+        do {
+            data = try await APIService.shared.getCalendar(from: from, to: to)
+        } catch {}
+        loading = false
+    }
+
+    private func changeWeek(_ dir: Int) {
+        selectedDate = nil
+        weekStart = Calendar.current.date(byAdding: .day, value: dir * 7, to: weekStart)!
+        Task { await loadWeek() }
+    }
+
+    private func goToday() {
+        weekStart = Calendar.current.date(from: Calendar.current.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date()))!
+        Task { await loadWeek() }
+    }
+
+    private func dateKey(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: date)
+    }
+
+    private func dayName(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "EEE"
+        return f.string(from: date)
+    }
+}

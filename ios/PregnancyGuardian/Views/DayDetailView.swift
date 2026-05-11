@@ -1,0 +1,207 @@
+import SwiftUI
+
+struct DayDetailView: View {
+    let date: String
+    let dayData: DayData
+    let onRefresh: () async -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            DietSectionView(date: date, diet: dayData.diet)
+            MonitorSectionView(date: date, monitor: dayData.monitor)
+            ExerciseSectionView(date: date, exercises: dayData.exercises, onRefresh: onRefresh)
+            TodoSectionView(date: date, todos: dayData.todos, onRefresh: onRefresh)
+        }
+        .padding()
+        .background(.white)
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+}
+
+// MARK: - Diet Section
+
+struct DietSectionView: View {
+    let date: String
+    let diet: [String: DietItem]
+    private let meals = ["breakfast", "lunch", "dinner"]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Diet", systemImage: "fork.knife")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(Color("Primary"))
+            ForEach(meals, id: \.self) { meal in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(meal.capitalized)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    TextField("Meal name", text: .constant(diet[meal]?.name ?? ""))
+                        .textFieldStyle(.roundedBorder)
+                        .font(.caption)
+                        .onSubmit { saveMeal(meal) }
+                }
+            }
+        }
+    }
+
+    private func saveMeal(_ meal: String) {
+        Task {
+            try? await APIService.shared.saveDiet(date: date, meal: meal, data: ["name": diet[meal]?.name ?? ""])
+        }
+    }
+}
+
+// MARK: - Monitor Section
+
+struct MonitorSectionView: View {
+    let date: String
+    let monitor: [String: MonitorItem]
+    private let metrics = [("weight", "Weight (kg)"), ("bloodPressure", "Blood Pressure"), ("heartRate", "Heart Rate"), ("bloodSugar", "Blood Sugar")]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Monitor", systemImage: "heart.fill")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(Color("Primary"))
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                ForEach(metrics, id: \.0) { key, label in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(label)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        TextField("—", text: .constant(monitor[key]?.value ?? ""))
+                            .textFieldStyle(.roundedBorder)
+                            .font(.caption)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Exercise Section
+
+struct ExerciseSectionView: View {
+    let date: String
+    let exercises: [ExerciseItem]
+    let onRefresh: () async -> Void
+    @State private var activity = ""
+    @State private var steps = ""
+    @State private var duration = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Exercises", systemImage: "flame.fill")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(Color("Primary"))
+            ForEach(exercises) { ex in
+                HStack {
+                    Text("\(ex.activity) · \(ex.steps) steps · \(ex.duration) min")
+                        .font(.caption)
+                    Spacer()
+                    Button { deleteExercise(ex.id) } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red.opacity(0.5))
+                    }
+                }
+            }
+            HStack(spacing: 4) {
+                TextField("Activity", text: $activity).textFieldStyle(.roundedBorder).font(.caption)
+                TextField("Steps", text: $steps).textFieldStyle(.roundedBorder).font(.caption).frame(width: 60)
+                TextField("Min", text: $duration).textFieldStyle(.roundedBorder).font(.caption).frame(width: 50)
+                Button("Add") { addExercise() }
+                    .font(.caption)
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color("Primary"))
+            }
+        }
+    }
+
+    private func addExercise() {
+        Task {
+            _ = try? await APIService.shared.createExercise(date: date, activity: activity, steps: Int(steps) ?? 0, duration: Int(duration) ?? 0)
+            activity = ""; steps = ""; duration = ""
+            await onRefresh()
+        }
+    }
+
+    private func deleteExercise(_ id: Int) {
+        Task {
+            try? await APIService.shared.deleteExercise(id: id)
+            await onRefresh()
+        }
+    }
+}
+
+// MARK: - Todo Section
+
+struct TodoSectionView: View {
+    let date: String
+    let todos: [TodoItem]
+    let onRefresh: () async -> Void
+    @State private var newText = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("To-Dos", systemImage: "checkmark.circle")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(Color("Primary"))
+            ForEach(todos) { todo in
+                HStack {
+                    Button { toggleTodo(todo) } label: {
+                        Image(systemName: todo.done ? "checkmark.circle.fill" : "circle")
+                            .foregroundColor(todo.done ? Color("Primary") : .gray)
+                    }
+                    Text(todo.text)
+                        .font(.caption)
+                        .strikethrough(todo.done)
+                        .foregroundColor(todo.done ? .secondary : .primary)
+                    Spacer()
+                    Button { deleteTodo(todo.id) } label: {
+                        Image(systemName: "trash")
+                            .font(.caption)
+                            .foregroundColor(.red.opacity(0.5))
+                    }
+                }
+            }
+            HStack {
+                TextField("Add a task…", text: $newText)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.caption)
+                    .onSubmit { addTodo() }
+                Button("Add") { addTodo() }
+                    .font(.caption)
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color("Primary"))
+            }
+        }
+    }
+
+    private func addTodo() {
+        guard !newText.isEmpty else { return }
+        Task {
+            _ = try? await APIService.shared.createTodo(date: date, text: newText)
+            newText = ""
+            await onRefresh()
+        }
+    }
+
+    private func toggleTodo(_ todo: TodoItem) {
+        Task {
+            try? await APIService.shared.updateTodo(id: todo.id, text: todo.text, done: !todo.done)
+            await onRefresh()
+        }
+    }
+
+    private func deleteTodo(_ id: Int) {
+        Task {
+            try? await APIService.shared.deleteTodo(id: id)
+            await onRefresh()
+        }
+    }
+}
