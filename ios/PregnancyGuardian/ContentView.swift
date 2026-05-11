@@ -9,7 +9,7 @@ struct ContentView: View {
             OnboardingView(dueDate: $dueDate)
         } else {
             TabView(selection: $selectedTab) {
-                HomeView(dueDate: dueDate)
+                HomeView()
                     .tabItem { Label("Home", systemImage: "heart.fill") }
                     .tag(0)
 

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
-    let dueDate: String
+    @AppStorage("dueDate") private var dueDate: String = ""
 
     private var currentWeek: Int {
         let formatter = DateFormatter()
@@ -82,6 +82,12 @@ struct HomeView: View {
                     .padding()
                     .background(.white)
                     .cornerRadius(16)
+
+                    Button("Change due date") {
+                        dueDate = ""
+                    }
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 }
                 .padding()
             }
