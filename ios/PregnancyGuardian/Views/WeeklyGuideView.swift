@@ -12,14 +12,19 @@ struct WeeklyGuideView: View {
         return dict[String(week)]
     }
 
+    private var attributedContent: AttributedString? {
+        guard let content else { return nil }
+        return try? AttributedString(markdown: content, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))
+    }
+
     var body: some View {
-        if let content, !content.isEmpty {
+        if let attributedContent {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Week \(week) Guide")
-                    .font(.caption)
+                    .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(Color("Primary"))
-                Text(content)
+                Text(attributedContent)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
