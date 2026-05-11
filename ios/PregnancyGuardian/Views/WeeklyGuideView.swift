@@ -14,19 +14,16 @@ struct WeeklyGuideView: View {
 
     var body: some View {
         if let content, !content.isEmpty {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Week \(week) Guide")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color("Primary"))
-                    Text(content)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding()
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Week \(week) Guide")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color("Primary"))
+                Text(content)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
-            .frame(maxHeight: 300)
+            .padding()
             .background(.white)
             .cornerRadius(12)
             .padding(.horizontal)
