@@ -37,6 +37,7 @@ struct ContentView: View {
 struct OnboardingView: View {
     @Binding var dueDate: String
     @State private var selectedDate = Date()
+    @State private var showConfirm = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -53,14 +54,24 @@ struct OnboardingView: View {
                 .datePickerStyle(.graphical)
                 .padding()
             Button("Get Started") {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                dueDate = formatter.string(from: selectedDate)
+                showConfirm = true
             }
             .buttonStyle(.borderedProminent)
             .tint(Color("Primary"))
             Spacer()
         }
         .padding()
+        .alert("Confirm Due Date", isPresented: $showConfirm) {
+            Button("Confirm") {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                dueDate = formatter.string(from: selectedDate)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .long
+            return Text("Set due date to \(formatter.string(from: selectedDate))?")
+        }
     }
 }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @AppStorage("dueDate") private var dueDate: String = ""
+    @State private var showResetConfirm = false
 
     private var currentWeek: Int {
         let formatter = DateFormatter()
@@ -84,7 +85,7 @@ struct HomeView: View {
                     .cornerRadius(16)
 
                     Button("Change due date") {
-                        dueDate = ""
+                        showResetConfirm = true
                     }
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -93,6 +94,12 @@ struct HomeView: View {
             }
             .background(Color("Surface"))
             .navigationTitle("Pregnancy Guardian")
+            .alert("Change Due Date", isPresented: $showResetConfirm) {
+                Button("Change", role: .destructive) { dueDate = "" }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will reset your due date. You'll need to set a new one.")
+            }
         }
     }
 
