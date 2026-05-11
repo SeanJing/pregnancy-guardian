@@ -5,6 +5,19 @@ struct CalendarView: View {
     @State private var data: [String: DayData] = [:]
     @State private var selectedDate: String?
     @State private var loading = true
+    @AppStorage("dueDate") private var dueDate: String = ""
+
+    private var currentPregnancyWeek: Int? {
+        guard !dueDate.isEmpty else { return nil }
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        guard let due = f.date(from: dueDate) else { return nil }
+        let conception = Calendar.current.date(byAdding: .day, value: -280, to: due)!
+        let mid = Calendar.current.date(byAdding: .day, value: 3, to: weekStart)!
+        let days = Calendar.current.dateComponents([.day], from: conception, to: mid).day ?? 0
+        let week = days / 7 + 1
+        return (1...40).contains(week) ? week : nil
+    }
 
     private var weekDates: [Date] {
         (0..<7).map { Calendar.current.date(byAdding: .day, value: $0, to: weekStart)! }
@@ -74,10 +87,12 @@ struct CalendarView: View {
                     }
                     .padding(.horizontal)
 
-                    // Day detail
+                    // Day detail or weekly guide
                     if let key = selectedDate, let dayData = data[key] ?? DayData(todos: [], diet: [:], monitor: [:], exercises: []) as DayData? {
                         DayDetailView(date: key, dayData: dayData, onRefresh: { await loadWeek() })
                             .transition(.move(edge: .bottom).combined(with: .opacity))
+                    } else if let week = currentPregnancyWeek {
+                        WeeklyGuideView(week: week)
                     }
                 }
                 .padding(.vertical)

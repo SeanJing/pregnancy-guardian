@@ -18,6 +18,8 @@
 		A1000009 /* DocumentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000009; };
 		A1000010 /* AssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000010; };
 		A1000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1000011; };
+		A1000012 /* WeeklyGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000012; };
+		A1000013 /* weekly-articles.json in Resources */ = {isa = PBXBuildFile; fileRef = B1000013; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +34,8 @@
 		B1000009 /* DocumentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentsView.swift; sourceTree = "<group>"; };
 		B1000010 /* AssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantView.swift; sourceTree = "<group>"; };
 		B1000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B1000012 /* WeeklyGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyGuideView.swift; sourceTree = "<group>"; };
+		B1000013 /* weekly-articles.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "weekly-articles.json"; sourceTree = "<group>"; };
 		B1000099 /* PregnancyGuardian.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PregnancyGuardian.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -52,6 +56,7 @@
 				C1000003 /* Models */,
 				C1000004 /* Services */,
 				C1000005 /* Views */,
+				C1000006 /* Resources */,
 				B1000011 /* Assets.xcassets */,
 			);
 			path = PregnancyGuardian;
@@ -82,8 +87,17 @@
 				B1000008 /* GalleryView.swift */,
 				B1000009 /* DocumentsView.swift */,
 				B1000010 /* AssistantView.swift */,
+				B1000012 /* WeeklyGuideView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		C1000006 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B1000013 /* weekly-articles.json */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		C1000099 /* Products */ = {
@@ -161,6 +175,7 @@
 				A1000008,
 				A1000009,
 				A1000010,
+				A1000012,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -172,6 +187,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000011,
+				A1000013,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
