@@ -25,7 +25,7 @@ struct WeeklyGuideView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(Color("Primary"))
                 Text(attributedContent)
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundColor(.secondary)
             }
             .padding()
