@@ -39,8 +39,10 @@ struct GalleryView: View {
                                         } placeholder: {
                                             Color.gray.opacity(0.2)
                                         }
-                                        .aspectRatio(1, contentMode: .fill)
+                                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                                        .aspectRatio(1, contentMode: .fit)
                                         .clipped()
+                                        .contentShape(Rectangle())
                                         .onTapGesture { selectedPhoto = photo }
                                     }
                                 }
