@@ -16,7 +16,7 @@ struct GalleryView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 if loading {
                     ProgressView().padding(.top, 100)
                 } else if photos.isEmpty {
