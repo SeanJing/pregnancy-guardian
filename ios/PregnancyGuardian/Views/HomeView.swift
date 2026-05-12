@@ -26,71 +26,84 @@ struct HomeView: View {
         return 3
     }
 
+    private var progress: Double {
+        Double(currentWeek) / 40.0
+    }
+
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour < 12 { return "Good morning" }
+        if hour < 18 { return "Good afternoon" }
+        return "Good evening"
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
-                    // Week tracker
-                    VStack(spacing: 12) {
-                        Text("\(currentWeek)")
-                            .font(.system(size: 48, weight: .bold))
-                            .foregroundColor(Color("Primary"))
-                        + Text(" weeks")
-                            .font(.title3)
+                VStack(spacing: 28) {
+                    // Greeting
+                    VStack(spacing: 4) {
+                        Text("\(greeting), mama 💕")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        Text("Week \(currentWeek) of your beautiful journey")
+                            .font(.subheadline)
                             .foregroundColor(.secondary)
-
-                        ProgressView(value: Double(currentWeek), total: 40)
-                            .tint(trimesterColor)
-
-                        HStack {
-                            Text("Week 1")
-                            Spacer()
-                            Text(trimesterName)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(trimesterColor.opacity(0.2))
-                                .cornerRadius(8)
-                            Spacer()
-                            Text("Week 40")
-                        }
-                        .font(.caption)
-                        .foregroundColor(.secondary)
                     }
-                    .padding()
-                    .background(.white)
-                    .cornerRadius(16)
+                    .padding(.top, 8)
 
-                    // Countdown
-                    HStack(spacing: 32) {
-                        VStack {
-                            Text("\(daysLeft)")
-                                .font(.title)
-                                .bold()
-                                .foregroundColor(.orange)
-                            Text("days to go")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        VStack {
-                            Text("\(daysLeft / 7)")
-                                .font(.title)
-                                .bold()
-                            Text("weeks left")
+                    // Illustration + Progress Ring
+                    ZStack {
+                        // Progress ring
+                        Circle()
+                            .stroke(Color("Primary").opacity(0.15), lineWidth: 12)
+                            .frame(width: 200, height: 200)
+                        Circle()
+                            .trim(from: 0, to: progress)
+                            .stroke(trimesterColor, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                            .frame(width: 200, height: 200)
+                            .rotationEffect(.degrees(-90))
+                            .animation(.easeInOut(duration: 1), value: progress)
+
+                        // Center illustration
+                        VStack(spacing: 4) {
+                            Image(systemName: "stroller.fill")
+                                .font(.system(size: 44))
+                                .foregroundColor(Color("Primary"))
+                            Text("\(currentWeek)")
+                                .font(.system(size: 36, weight: .bold))
+                                .foregroundColor(Color("Primary"))
+                            Text("weeks")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                     }
-                    .padding()
-                    .background(.white)
-                    .cornerRadius(16)
 
+                    // Trimester badge
+                    Text(trimesterName)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 6)
+                        .background(trimesterColor.opacity(0.15))
+                        .foregroundColor(trimesterColor)
+                        .cornerRadius(20)
+
+                    // Countdown cards
+                    HStack(spacing: 16) {
+                        CountdownCard(value: "\(daysLeft)", label: "days to go", color: .orange)
+                        CountdownCard(value: "\(daysLeft / 7)", label: "weeks left", color: Color("Primary"))
+                    }
+                    .padding(.horizontal)
+
+                    // Change due date
                     Button("Change due date") {
                         showResetConfirm = true
                     }
                     .font(.caption)
                     .foregroundColor(.secondary)
                 }
-                .padding()
+                .padding(.vertical)
             }
             .background(Color("Surface"))
             .navigationTitle("Pregnancy Guardian")
@@ -117,5 +130,27 @@ struct HomeView: View {
         case 2: return "2nd Trimester"
         default: return "3rd Trimester"
         }
+    }
+}
+
+struct CountdownCard: View {
+    let value: String
+    let label: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(color)
+            Text(label)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(.white)
+        .cornerRadius(16)
     }
 }
