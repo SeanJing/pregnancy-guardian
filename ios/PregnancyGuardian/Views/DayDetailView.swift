@@ -92,7 +92,7 @@ struct DietSectionView: View {
 struct MonitorSectionView: View {
     let date: String
     let monitor: [String: MonitorItem]
-    private let metrics = [("weight", "Weight (kg)"), ("bloodPressure", "Blood Pressure"), ("heartRate", "Heart Rate"), ("bloodSugar", "Blood Sugar")]
+    private let metrics = [("weight", "Weight (kg)"), ("bloodPressure", "Blood Pressure"), ("heartRate", "Heart Rate"), ("bloodSugar", "Blood Sugar"), ("kickCounts", "Kick Counts"), ("mood", "Mood (1-5)")]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

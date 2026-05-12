@@ -5,6 +5,8 @@ const METRICS = [
   { key: 'bloodPressure', label: 'Blood Pressure', placeholder: 'e.g. 120/80' },
   { key: 'heartRate', label: 'Heart Rate (bpm)', placeholder: 'e.g. 75' },
   { key: 'bloodSugar', label: 'Blood Sugar (mmol/L)', placeholder: 'e.g. 5.2' },
+  { key: 'kickCounts', label: 'Kick Counts', placeholder: 'e.g. 10' },
+  { key: 'mood', label: 'Mood (1-5)', placeholder: '1=low, 5=great' },
 ]
 
 export default function MonitorSection({ monitor, date, updateDay }) {

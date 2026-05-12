@@ -7,6 +7,8 @@ const METRICS = [
   { key: 'bloodPressure', label: 'Blood Pressure', color: '#0D9488' },
   { key: 'heartRate', label: 'Heart Rate (bpm)', color: '#F97316' },
   { key: 'bloodSugar', label: 'Blood Sugar (mmol/L)', color: '#8B5CF6' },
+  { key: 'kickCounts', label: 'Kick Counts', color: '#22C55E' },
+  { key: 'mood', label: 'Mood (1-5)', color: '#EAB308' },
 ]
 
 export default function TrendsPage() {
