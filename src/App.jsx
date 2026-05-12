@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import Sidebar from './components/Sidebar'
 import HomePage from './pages/HomePage'
 import CalendarPage from './pages/CalendarPage'
 import GalleryPage from './pages/GalleryPage'
 import DocumentsPage from './pages/DocumentsPage'
-import AssistantPage from './pages/AssistantPage'
-import TrendsPage from './pages/TrendsPage'
+const AssistantPage = lazy(() => import('./pages/AssistantPage'))
+const TrendsPage = lazy(() => import('./pages/TrendsPage'))
 
 function getHash() {
   return window.location.hash.replace('#/', '') || 'home'
@@ -49,8 +49,8 @@ export default function App() {
             {visited.calendar && <div className={page === 'calendar' ? '' : 'hidden'}><CalendarPage /></div>}
             {visited.gallery && <div className={page === 'gallery' ? '' : 'hidden'}><GalleryPage /></div>}
             {visited.documents && <div className={page === 'documents' ? '' : 'hidden'}><DocumentsPage /></div>}
-            {visited.assistant && <div className={page === 'assistant' ? '' : 'hidden'}><AssistantPage /></div>}
-            {visited.trends && <div className={page === 'trends' ? '' : 'hidden'}><TrendsPage /></div>}
+            {visited.assistant && <div className={page === 'assistant' ? '' : 'hidden'}><Suspense><AssistantPage /></Suspense></div>}
+            {visited.trends && <div className={page === 'trends' ? '' : 'hidden'}><Suspense><TrendsPage /></Suspense></div>}
           </main>
         </div>
       )}
