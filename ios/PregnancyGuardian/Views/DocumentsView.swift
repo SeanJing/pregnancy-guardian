@@ -7,7 +7,7 @@ struct DocumentsView: View {
     @State private var search = ""
     @State private var showFilePicker = false
 
-    private let baseURL = "https://pregnancy-guardian-api.hfjingxiao13.workers.dev"
+    private let baseURL = APIService.host
 
     private var filtered: [DocumentItem] {
         search.isEmpty ? documents : documents.filter { $0.name.localizedCaseInsensitiveContains(search) }

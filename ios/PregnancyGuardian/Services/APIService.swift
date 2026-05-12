@@ -2,7 +2,8 @@ import Foundation
 
 class APIService {
     static let shared = APIService()
-    private let baseURL = "https://pregnancy-guardian-api.hfjingxiao13.workers.dev/api"
+    static let host = "https://pregnancy-guardian-api.hfjingxiao13.workers.dev"
+    private let baseURL = "\(APIService.host)/api"
 
     private init() {}
 

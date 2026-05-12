@@ -7,7 +7,7 @@ struct GalleryView: View {
     @State private var selectedPhoto: PhotoItem?
     @State private var photoPickerItem: PhotosPickerItem?
 
-    private let baseURL = "https://pregnancy-guardian-api.hfjingxiao13.workers.dev"
+    private let baseURL = APIService.host
 
     private var grouped: [(String, [PhotoItem])] {
         let dict = Dictionary(grouping: photos) { $0.date?.prefix(10).description ?? "Unknown" }
