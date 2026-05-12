@@ -1,33 +1,18 @@
 import SwiftUI
 
+struct GuideSection: Codable {
+    let title: String
+    let content: String
+}
+
 struct WeeklyGuideView: View {
     let week: Int
 
-    private var sections: [(title: String, content: String)] {
+    private var sections: [GuideSection] {
         guard let url = Bundle.main.url(forResource: "weekly-articles", withExtension: "json"),
               let data = try? Data(contentsOf: url),
-              let dict = try? JSONSerialization.jsonObject(with: data) as? [String: String],
-              let text = dict[String(week)] else { return [] }
-
-        var result: [(String, String)] = []
-        var currentTitle = "Overview"
-        var currentContent = ""
-
-        for line in text.components(separatedBy: "\n") {
-            if line.hasPrefix("##") {
-                if !currentContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    result.append((currentTitle, currentContent.trimmingCharacters(in: .whitespacesAndNewlines)))
-                }
-                currentTitle = line.replacingOccurrences(of: "#", with: "").trimmingCharacters(in: .whitespaces)
-                currentContent = ""
-            } else {
-                currentContent += line + "\n"
-            }
-        }
-        if !currentContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            result.append((currentTitle, currentContent.trimmingCharacters(in: .whitespacesAndNewlines)))
-        }
-        return result
+              let dict = try? JSONDecoder().decode([String: [GuideSection]].self, from: data) else { return [] }
+        return dict[String(week)] ?? []
     }
 
     var body: some View {
