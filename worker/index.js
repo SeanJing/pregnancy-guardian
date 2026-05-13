@@ -16,6 +16,8 @@ async function initDB(db) {
 
 app.use('/api/*', async (c, next) => {
   await initDB(c.env.DB)
+  // Migrate: add caption column if missing
+  try { await c.env.DB.exec("ALTER TABLE gallery ADD COLUMN caption TEXT DEFAULT ''") } catch {}
   await next()
 })
 
