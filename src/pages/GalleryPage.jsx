@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api, UPLOADS_BASE } from '../api'
-import LoadingSpinner from '../components/LoadingSpinner'
+import { GallerySkeleton } from '../components/Skeleton'
 import ErrorMessage from '../components/ErrorMessage'
 
 export default function GalleryPage() {
@@ -46,7 +46,7 @@ export default function GalleryPage() {
       </header>
 
       <div className="px-4 md:px-6 lg:px-8 pb-8">
-        {loading ? <LoadingSpinner /> : error ? <ErrorMessage message={error} onRetry={load} /> : photos.length === 0 ? (
+        {loading ? <GallerySkeleton /> : error ? <ErrorMessage message={error} onRetry={load} /> : photos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-ink/40">
             <svg className="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"/></svg>
             <p className="text-sm">No photos yet. Tap "Add Photos" to get started.</p>

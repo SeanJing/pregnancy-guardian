@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import CalendarGrid from '../components/CalendarGrid'
-import LoadingSpinner from '../components/LoadingSpinner'
+import { CalendarSkeleton } from '../components/Skeleton'
 import ErrorMessage from '../components/ErrorMessage'
 import { useCalendarData } from '../useCalendarData'
 import { api } from '../api'
@@ -102,7 +102,7 @@ export default function CalendarPage() {
       </header>
       <div className="flex flex-1 overflow-hidden">
         <div className={`flex-1 min-w-0 px-4 md:px-6 lg:px-8 pb-8 overflow-y-auto transition-all duration-1000 ease-in-out rounded-xl m-2 border ${TRIMESTER_COLORS[getTrimester(dueDate, weekStart.getFullYear(), weekStart.getMonth())] || 'bg-surface border-transparent'}`}>
-          {loading ? <LoadingSpinner /> : error ? <ErrorMessage message={error} onRetry={retry} /> : <CalendarGrid weekStart={weekStart} data={data} activeKey={activeKey} onDayClick={openDay} onClose={() => setActiveKey(null)} getDayData={getDayData} updateDay={updateDay} week={getWeekForDate(dueDate, activeKey) || getTrimesterWeek(dueDate, weekStart)} />}
+          {loading ? <CalendarSkeleton /> : error ? <ErrorMessage message={error} onRetry={retry} /> : <CalendarGrid weekStart={weekStart} data={data} activeKey={activeKey} onDayClick={openDay} onClose={() => setActiveKey(null)} getDayData={getDayData} updateDay={updateDay} week={getWeekForDate(dueDate, activeKey) || getTrimesterWeek(dueDate, weekStart)} />}
         </div>
       </div>
     </div>
