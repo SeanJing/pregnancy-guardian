@@ -31,11 +31,11 @@ def get_db() -> sqlite3.Connection:
 def init_db():
     conn = get_db()
     conn.executescript("""
-        CREATE TABLE IF NOT EXISTS todos (
+        CREATE TABLE IF NOT EXISTS events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date TEXT NOT NULL,
             text TEXT NOT NULL,
-            done INTEGER DEFAULT 0
+            time TEXT DEFAULT ''
         );
         CREATE TABLE IF NOT EXISTS diet (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,7 +74,7 @@ def init_db():
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
         );
-        CREATE INDEX IF NOT EXISTS idx_todos_date ON todos(date);
+        CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
         CREATE INDEX IF NOT EXISTS idx_diet_date ON diet(date);
         CREATE INDEX IF NOT EXISTS idx_monitor_date ON monitor(date);
         CREATE INDEX IF NOT EXISTS idx_exercises_date ON exercises(date);
@@ -94,25 +94,25 @@ def get_calendar():
     conn = get_db()
     data = {}
     # Collect all dates that have any data
-    for row in conn.execute("SELECT DISTINCT date FROM todos UNION SELECT DISTINCT date FROM diet UNION SELECT DISTINCT date FROM monitor UNION SELECT DISTINCT date FROM exercises"):
+    for row in conn.execute("SELECT DISTINCT date FROM events UNION SELECT DISTINCT date FROM diet UNION SELECT DISTINCT date FROM monitor UNION SELECT DISTINCT date FROM exercises"):
         d = row[0]
         if d not in data:
-            data[d] = {"todos": [], "diet": {}, "monitor": {}, "exercises": []}
-    # Todos
-    for r in conn.execute("SELECT id, date, text, done FROM todos ORDER BY id"):
-        data.setdefault(r["date"], {"todos": [], "diet": {}, "monitor": {}, "exercises": []})
-        data[r["date"]]["todos"].append({"id": r["id"], "text": r["text"], "done": bool(r["done"])})
+            data[d] = {"events": [], "diet": {}, "monitor": {}, "exercises": []}
+    # Events
+    for r in conn.execute("SELECT id, date, text, time FROM events ORDER BY id"):
+        data.setdefault(r["date"], {"events": [], "diet": {}, "monitor": {}, "exercises": []})
+        data[r["date"]]["events"].append({"id": r["id"], "text": r["text"], "time": r["time"] or ""})
     # Diet
     for r in conn.execute("SELECT id, date, meal, name, instructions FROM diet ORDER BY id"):
-        data.setdefault(r["date"], {"todos": [], "diet": {}, "monitor": {}, "exercises": []})
+        data.setdefault(r["date"], {"events": [], "diet": {}, "monitor": {}, "exercises": []})
         data[r["date"]]["diet"][r["meal"]] = {"id": r["id"], "name": r["name"], "instructions": r["instructions"]}
     # Monitor
     for r in conn.execute("SELECT id, date, metric, value FROM monitor ORDER BY id"):
-        data.setdefault(r["date"], {"todos": [], "diet": {}, "monitor": {}, "exercises": []})
+        data.setdefault(r["date"], {"events": [], "diet": {}, "monitor": {}, "exercises": []})
         data[r["date"]]["monitor"][r["metric"]] = {"id": r["id"], "value": r["value"]}
     # Exercises
     for r in conn.execute("SELECT id, date, activity, steps, duration FROM exercises ORDER BY id"):
-        data.setdefault(r["date"], {"todos": [], "diet": {}, "monitor": {}, "exercises": []})
+        data.setdefault(r["date"], {"events": [], "diet": {}, "monitor": {}, "exercises": []})
         data[r["date"]]["exercises"].append({"id": r["id"], "activity": r["activity"], "steps": r["steps"], "duration": r["duration"]})
     conn.close()
     return data
@@ -121,9 +121,9 @@ def get_calendar():
 @app.get("/api/calendar/{date_str}")
 def get_calendar_day(date_str: str):
     conn = get_db()
-    data = {"todos": [], "diet": {}, "monitor": {}, "exercises": []}
-    for r in conn.execute("SELECT id, text, done FROM todos WHERE date = ? ORDER BY id", (date_str,)):
-        data["todos"].append({"id": r["id"], "text": r["text"], "done": bool(r["done"])})
+    data = {"events": [], "diet": {}, "monitor": {}, "exercises": []}
+    for r in conn.execute("SELECT id, text, time FROM events WHERE date = ? ORDER BY id", (date_str,)):
+        data["events"].append({"id": r["id"], "text": r["text"], "time": r["time"] or ""})
     for r in conn.execute("SELECT id, meal, name, instructions FROM diet WHERE date = ? ORDER BY id", (date_str,)):
         data["diet"][r["meal"]] = {"id": r["id"], "name": r["name"], "instructions": r["instructions"]}
     for r in conn.execute("SELECT id, metric, value FROM monitor WHERE date = ? ORDER BY id", (date_str,)):
@@ -134,33 +134,33 @@ def get_calendar_day(date_str: str):
     return data
 
 
-# --- Todos ---
+# --- Events ---
 
-@app.post("/api/todos")
-async def create_todo(request: Request):
+@app.post("/api/events")
+async def create_event(request: Request):
     body = await request.json()
     conn = get_db()
-    cur = conn.execute("INSERT INTO todos (date, text, done) VALUES (?, ?, ?)", (body["date"], body["text"], int(body.get("done", False))))
+    cur = conn.execute("INSERT INTO events (date, text, time) VALUES (?, ?, ?)", (body["date"], body["text"], body.get("time", "")))
     conn.commit()
-    todo_id = cur.lastrowid
+    event_id = cur.lastrowid
     conn.close()
-    return {"id": todo_id, "date": body["date"], "text": body["text"], "done": body.get("done", False)}
+    return {"id": event_id, "date": body["date"], "text": body["text"], "time": body.get("time", "")}
 
 
-@app.put("/api/todos/{todo_id}")
-async def update_todo(todo_id: int, request: Request):
+@app.put("/api/events/{event_id}")
+async def update_event(event_id: int, request: Request):
     body = await request.json()
     conn = get_db()
-    conn.execute("UPDATE todos SET text=?, done=? WHERE id=?", (body.get("text", ""), int(body.get("done", False)), todo_id))
+    conn.execute("UPDATE events SET text=?, time=? WHERE id=?", (body.get("text", ""), body.get("time", ""), event_id))
     conn.commit()
     conn.close()
     return {"ok": True}
 
 
-@app.delete("/api/todos/{todo_id}")
-def delete_todo(todo_id: int):
+@app.delete("/api/events/{event_id}")
+def delete_event(event_id: int):
     conn = get_db()
-    conn.execute("DELETE FROM todos WHERE id=?", (todo_id,))
+    conn.execute("DELETE FROM events WHERE id=?", (event_id,))
     conn.commit()
     conn.close()
     return {"ok": True}
@@ -322,9 +322,9 @@ def search(q: str = ""):
         return {"calendar": [], "gallery": [], "documents": []}
     like = f"%{q}%"
     conn = get_db()
-    # Search todos and diet
+    # Search events and diet
     dates = set()
-    for r in conn.execute("SELECT DISTINCT date FROM todos WHERE text LIKE ?", (like,)):
+    for r in conn.execute("SELECT DISTINCT date FROM events WHERE text LIKE ?", (like,)):
         dates.add(r[0])
     for r in conn.execute("SELECT DISTINCT date FROM diet WHERE name LIKE ? OR instructions LIKE ?", (like, like)):
         dates.add(r[0])

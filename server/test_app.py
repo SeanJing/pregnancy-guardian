@@ -33,25 +33,26 @@ def client():
     return TestClient(app)
 
 
-class TestTodos:
+class TestEvents:
     def test_create(self, client):
-        res = client.post("/api/todos", json={"date": "2026-05-01", "text": "Buy vitamins"})
+        res = client.post("/api/events", json={"date": "2026-05-01", "text": "Buy vitamins", "time": "09:00"})
         assert res.status_code == 200
         assert res.json()["text"] == "Buy vitamins"
+        assert res.json()["time"] == "09:00"
         assert "id" in res.json()
 
     def test_update(self, client):
-        todo = client.post("/api/todos", json={"date": "2026-05-01", "text": "Test"}).json()
-        client.put(f"/api/todos/{todo['id']}", json={"text": "Updated", "done": True})
+        event = client.post("/api/events", json={"date": "2026-05-01", "text": "Test"}).json()
+        client.put(f"/api/events/{event['id']}", json={"text": "Updated", "time": "14:30"})
         day = client.get("/api/calendar/2026-05-01").json()
-        assert day["todos"][0]["text"] == "Updated"
-        assert day["todos"][0]["done"] is True
+        assert day["events"][0]["text"] == "Updated"
+        assert day["events"][0]["time"] == "14:30"
 
     def test_delete(self, client):
-        todo = client.post("/api/todos", json={"date": "2026-05-01", "text": "Del"}).json()
-        client.delete(f"/api/todos/{todo['id']}")
+        event = client.post("/api/events", json={"date": "2026-05-01", "text": "Del"}).json()
+        client.delete(f"/api/events/{event['id']}")
         day = client.get("/api/calendar/2026-05-01").json()
-        assert len(day["todos"]) == 0
+        assert len(day["events"]) == 0
 
 
 class TestDiet:
@@ -107,13 +108,13 @@ class TestCalendar:
         assert res.json() == {}
 
     def test_aggregated_view(self, client):
-        client.post("/api/todos", json={"date": "2026-05-01", "text": "Task"})
+        client.post("/api/events", json={"date": "2026-05-01", "text": "Task"})
         client.put("/api/diet/2026-05-01/breakfast", json={"name": "Eggs", "instructions": ""})
         client.put("/api/monitor/2026-05-01/weight", json={"value": "60"})
         client.post("/api/exercises", json={"date": "2026-05-01", "activity": "Walk", "steps": 1000, "duration": 15})
         data = client.get("/api/calendar").json()
         assert "2026-05-01" in data
-        assert len(data["2026-05-01"]["todos"]) == 1
+        assert len(data["2026-05-01"]["events"]) == 1
         assert "breakfast" in data["2026-05-01"]["diet"]
         assert "weight" in data["2026-05-01"]["monitor"]
         assert len(data["2026-05-01"]["exercises"]) == 1
@@ -153,8 +154,8 @@ class TestSettings:
 
 
 class TestSearch:
-    def test_find_todos(self, client):
-        client.post("/api/todos", json={"date": "2026-05-01", "text": "Ultrasound appointment"})
+    def test_find_events(self, client):
+        client.post("/api/events", json={"date": "2026-05-01", "text": "Ultrasound appointment"})
         res = client.get("/api/search?q=Ultrasound")
         assert len(res.json()["calendar"]) >= 1
 
