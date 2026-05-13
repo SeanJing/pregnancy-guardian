@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Pregnancy Guardian needs calendar access to show your appointments and create reminders for checkups.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Pregnancy Guardian needs full calendar access to show your appointments and create reminders for checkups.</string>
+</dict>
+</plist>

@@ -10,7 +10,7 @@ struct DayDetailView: View {
             DietSectionView(date: date, diet: dayData.diet)
             MonitorSectionView(date: date, monitor: dayData.monitor)
             ExerciseSectionView(date: date, exercises: dayData.exercises, onRefresh: onRefresh)
-            TodoSectionView(date: date, todos: dayData.todos, onRefresh: onRefresh)
+            EventsSectionView(date: date)
         }
         .padding()
         .background(.white)
@@ -38,7 +38,7 @@ struct DayDetailFullView: View {
                 DietSectionView(date: date, diet: dayData.diet)
                 MonitorSectionView(date: date, monitor: dayData.monitor)
                 ExerciseSectionView(date: date, exercises: dayData.exercises, onRefresh: onRefresh)
-                TodoSectionView(date: date, todos: dayData.todos, onRefresh: onRefresh)
+                EventsSectionView(date: date)
             }
             .padding()
         }
