@@ -6,9 +6,10 @@ export default function HomePage({ onNavigate }) {
   const [dueDate, setDueDate] = useState(null)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
+  const [nextCheckup, setNextCheckup] = useState('')
 
   useEffect(() => {
-    api.getSettings().then(s => { setDueDate(s.dueDate || null); setLoading(false) })
+    api.getSettings().then(s => { setDueDate(s.dueDate || null); setNextCheckup(s.nextCheckup || ''); setLoading(false) })
   }, [])
 
   const saveDueDate = async (e) => {
@@ -76,6 +77,18 @@ export default function HomePage({ onNavigate }) {
       </div>
 
       <footer className="text-center text-xs text-ink/30 py-4 space-y-2">
+        {/* Next Checkup */}
+        <div className="max-w-sm mx-auto mb-4 bg-white rounded-xl p-4 text-left">
+          <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">Next Checkup</p>
+          {nextCheckup && new Date(nextCheckup) > new Date() ? (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-ink">{new Date(nextCheckup).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+              <span className="text-sm font-semibold text-cta">{Math.ceil((new Date(nextCheckup) - new Date()) / 86400000)} days away</span>
+            </div>
+          ) : null}
+          <input type="date" value={nextCheckup} onChange={e => { setNextCheckup(e.target.value); api.saveSettings({ nextCheckup: e.target.value }) }}
+            className="mt-2 w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150" />
+        </div>
         <a href="/api/backup" download className="inline-flex items-center gap-1 text-ink/40 hover:text-primary cursor-pointer transition-colors duration-150">
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
           Backup my data
