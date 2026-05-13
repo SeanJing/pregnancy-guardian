@@ -35,8 +35,7 @@ export const api = {
   getDay: (date) => json(`/calendar/${date}`),
 
   // Todos
-  createEvent: (date, text, time) => { invalidateCalendar(); return json('/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date, text, time: time || '', done: false }) }) },
-  updateEvent: (id, data) => { invalidateCalendar(); return json(`/events/${id}`, jsonBody(data)) },
+  createEvent: (date, text, time) => { invalidateCalendar(); return json('/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date, text, time: time || '' }) }) },
   deleteEvent: (id) => { invalidateCalendar(); return json(`/events/${id}`, { method: 'DELETE' }) },
 
   // Diet

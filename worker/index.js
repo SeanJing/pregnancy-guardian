@@ -5,7 +5,7 @@ const app = new Hono()
 app.use('*', cors())
 
 async function initDB(db) {
-  await db.exec("CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, text TEXT NOT NULL, time TEXT DEFAULT '', done INTEGER DEFAULT 0);")
+  await db.exec("CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, text TEXT NOT NULL, time TEXT DEFAULT '');")
   await db.exec("CREATE TABLE IF NOT EXISTS diet (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, meal TEXT NOT NULL, name TEXT DEFAULT '', instructions TEXT DEFAULT '');")
   await db.exec("CREATE TABLE IF NOT EXISTS monitor (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, metric TEXT NOT NULL, value TEXT NOT NULL);")
   await db.exec("CREATE TABLE IF NOT EXISTS exercises (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, activity TEXT DEFAULT '', steps INTEGER DEFAULT 0, duration INTEGER DEFAULT 0);")
@@ -54,8 +54,8 @@ app.get('/api/calendar', async (c) => {
   const where = (from && to) ? ' WHERE date >= ? AND date <= ?' : ''
   const params = (from && to) ? [from, to] : []
 
-  for (const r of (await db.prepare(`SELECT id, date, time, text, done FROM events${where} ORDER BY id`).bind(...params).all()).results) {
-    ensure(r.date); data[r.date].events.push({ id: r.id, text: r.text, time: r.time || '', done: !!r.done })
+  for (const r of (await db.prepare(`SELECT id, date, time, text FROM events${where} ORDER BY id`).bind(...params).all()).results) {
+    ensure(r.date); data[r.date].events.push({ id: r.id, text: r.text, time: r.time || '' })
   }
   for (const r of (await db.prepare(`SELECT id, date, meal, name, instructions FROM diet${where} ORDER BY id`).bind(...params).all()).results) {
     ensure(r.date); data[r.date].diet[r.meal] = { id: r.id, name: r.name, instructions: r.instructions }
@@ -73,8 +73,8 @@ app.get('/api/calendar/:date', async (c) => {
   const db = c.env.DB
   const date = c.req.param('date')
   const data = { events: [], diet: {}, monitor: {}, exercises: [] }
-  for (const r of (await db.prepare('SELECT id, time, text, done FROM events WHERE date=? ORDER BY id').bind(date).all()).results) {
-    data.events.push({ id: r.id, text: r.text, time: r.time || '', done: !!r.done })
+  for (const r of (await db.prepare('SELECT id, time, text, text FROM events WHERE date=? ORDER BY id').bind(date).all()).results) {
+    data.events.push({ id: r.id, text: r.text, time: r.time || '' })
   }
   for (const r of (await db.prepare('SELECT id, meal, name, instructions FROM diet WHERE date=? ORDER BY id').bind(date).all()).results) {
     data.diet[r.meal] = { id: r.id, name: r.name, instructions: r.instructions }
@@ -91,15 +91,15 @@ app.get('/api/calendar/:date', async (c) => {
 // --- Todos ---
 app.post('/api/events', async (c) => {
   const db = c.env.DB
-  const { date, text, time, done } = await c.req.json()
-  const res = await db.prepare('INSERT INTO events (date, text, time, done) VALUES (?, ?, ?, ?) RETURNING id').bind(date, text, time || '', done ? 1 : 0).first()
-  return c.json({ id: res.id, date, text, time: time || '', done: !!done })
+  const { date, text, time } = await c.req.json()
+  const res = await db.prepare('INSERT INTO events (date, text, time) VALUES (?, ?, ?) RETURNING id').bind(date, text, time || '').first()
+  return c.json({ id: res.id, date, text, time: time || '' })
 })
 
 app.put('/api/events/:id', async (c) => {
   const db = c.env.DB
-  const { text, done } = await c.req.json()
-  await db.prepare('UPDATE events SET text=?, done=? WHERE id=?').bind(text, done ? 1 : 0, Number(c.req.param('id'))).run()
+  const { text, time } = await c.req.json()
+  await db.prepare('UPDATE events SET text=?, time=? WHERE id=?').bind(text || '', time || '', Number(c.req.param('id'))).run()
   return c.json({ ok: true })
 })
 
