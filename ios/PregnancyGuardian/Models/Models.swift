@@ -35,6 +35,7 @@ struct PhotoItem: Codable, Identifiable {
     let id: Int
     let url: String
     let name: String
+    var caption: String?
     var date: String?
 }
 

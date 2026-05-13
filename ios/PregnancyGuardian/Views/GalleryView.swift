@@ -18,7 +18,15 @@ struct GalleryView: View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 if loading {
-                    ProgressView().padding(.top, 100)
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 2), GridItem(.flexible(), spacing: 2), GridItem(.flexible(), spacing: 2)], spacing: 2) {
+                        ForEach(0..<9, id: \.self) { _ in
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.gray.opacity(0.2))
+                                .aspectRatio(1, contentMode: .fit)
+                        }
+                    }
+                    .padding()
+                    .redacted(reason: .placeholder)
                 } else if photos.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "photo.on.rectangle")
@@ -99,19 +107,39 @@ struct PhotoDetailView: View {
     let photo: PhotoItem
     let baseURL: String
     let onDelete: () -> Void
+    @State private var caption: String = ""
 
     var body: some View {
         NavigationStack {
-            AsyncImage(url: URL(string: "\(baseURL)\(photo.url)")) { image in
-                image.resizable().scaledToFit()
-            } placeholder: {
-                ProgressView()
+            VStack {
+                AsyncImage(url: URL(string: "\(baseURL)\(photo.url)")) { image in
+                    image.resizable().scaledToFit()
+                } placeholder: {
+                    ProgressView()
+                }
+                .frame(maxHeight: .infinity)
+
+                TextField("Add a caption…", text: $caption)
+                    .textFieldStyle(.roundedBorder)
+                    .padding()
+                    .onSubmit { saveCaption() }
+                    .onAppear { caption = photo.caption ?? "" }
             }
             .navigationTitle(photo.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 Button("Delete", role: .destructive, action: onDelete)
             }
+        }
+    }
+
+    private func saveCaption() {
+        Task {
+            var request = URLRequest(url: URL(string: "\(baseURL)/api/gallery/\(photo.id)/caption")!)
+            request.httpMethod = "PUT"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONSerialization.data(withJSONObject: ["caption": caption])
+            _ = try? await URLSession.shared.data(for: request)
         }
     }
 }

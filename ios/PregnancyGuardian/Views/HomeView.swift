@@ -2,7 +2,9 @@ import SwiftUI
 
 struct HomeView: View {
     @AppStorage("dueDate") private var dueDate: String = ""
+    @AppStorage("nextCheckup") private var nextCheckup: String = ""
     @State private var showResetConfirm = false
+    @State private var checkupDate = Date()
 
     private var currentWeek: Int {
         let formatter = DateFormatter()
@@ -96,6 +98,33 @@ struct HomeView: View {
                     }
                     .padding(.horizontal)
 
+                    // Next checkup
+                    VStack(spacing: 8) {
+                        Text("Next Checkup")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color("Primary"))
+                            .textCase(.uppercase)
+                        if !nextCheckup.isEmpty, let days = checkupDaysAway, days > 0 {
+                            Text("\(days) days away")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.orange)
+                        }
+                        DatePicker("", selection: $checkupDate, displayedComponents: .date)
+                            .datePickerStyle(.compact)
+                            .labelsHidden()
+                            .onChange(of: checkupDate) { _, newDate in
+                                let f = DateFormatter()
+                                f.dateFormat = "yyyy-MM-dd"
+                                nextCheckup = f.string(from: newDate)
+                                Task { try? await APIService.shared.saveSettings(["nextCheckup": nextCheckup]) }
+                            }
+                    }
+                    .padding()
+                    .background(.white)
+                    .cornerRadius(16)
+
                     // Change due date
                     Button("Change due date") {
                         showResetConfirm = true
@@ -114,6 +143,13 @@ struct HomeView: View {
                 Text("This will reset your due date. You'll need to set a new one.")
             }
         }
+    }
+
+    private var checkupDaysAway: Int? {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        guard let date = f.date(from: nextCheckup) else { return nil }
+        return Calendar.current.dateComponents([.day], from: Date(), to: date).day
     }
 
     private var trimesterColor: Color {
