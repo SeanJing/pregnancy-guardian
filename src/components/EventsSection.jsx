@@ -39,7 +39,10 @@ export default function EventsSection({ events: initialEvents, date, updateDay }
       </ul>
       <form onSubmit={add} className="mt-2 flex flex-wrap gap-2">
         <input value={text} onChange={e => setText(e.target.value)} type="text" placeholder="Add an event…" className="flex-1 min-w-[120px] px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150" required />
-        <input value={time} onChange={e => setTime(e.target.value)} type="time" className="w-28 px-2 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150" />
+        <select value={time} onChange={e => setTime(e.target.value)} className="w-28 px-2 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150 cursor-pointer">
+          <option value="">All day</option>
+          {Array.from({ length: 48 }, (_, i) => { const h = String(Math.floor(i/2)).padStart(2,'0'); const m = i%2 === 0 ? '00' : '30'; return `${h}:${m}` }).map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
         <button type="submit" className="px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-light cursor-pointer transition-colors duration-150 active:scale-95">Add</button>
       </form>
     </section>
