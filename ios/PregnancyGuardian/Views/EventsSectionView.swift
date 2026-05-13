@@ -5,6 +5,7 @@ struct EventsSectionView: View {
     let date: String
     @State private var events: [EKEvent] = []
     @State private var newTitle = ""
+    @State private var eventTime = Date()
     @State private var accessGranted = false
     
     private let store = EKEventStore()
@@ -57,6 +58,9 @@ struct EventsSectionView: View {
                         .textFieldStyle(.roundedBorder)
                         .font(.subheadline)
                         .onSubmit { addEvent() }
+                    DatePicker("", selection: $eventTime, displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                        .frame(width: 80)
                     Button("Add") { addEvent() }
                         .font(.subheadline)
                         .buttonStyle(.borderedProminent)
@@ -96,19 +100,26 @@ struct EventsSectionView: View {
         guard !newTitle.isEmpty else { return }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
 
+        // Combine date + selected time
+        let cal = Calendar.current
+        let timeComponents = cal.dateComponents([.hour, .minute], from: eventTime)
+        var startDate = dateObj
+        startDate = cal.date(bySettingHour: timeComponents.hour ?? 0, minute: timeComponents.minute ?? 0, second: 0, of: startDate)!
+
         // Save to native calendar
         let event = EKEvent(eventStore: store)
         event.title = newTitle
-        event.startDate = dateObj
-        event.endDate = Calendar.current.date(byAdding: .hour, value: 1, to: dateObj)!
+        event.startDate = startDate
+        event.endDate = cal.date(byAdding: .hour, value: 1, to: startDate)!
         event.calendar = store.defaultCalendarForNewEvents
         event.addAlarm(EKAlarm(relativeOffset: -3600))
         try? store.save(event, span: .thisEvent)
 
-        // Save to API (so it shows on web too)
+        // Save to API
         let title = newTitle
+        let timeStr = String(format: "%02d:%02d", timeComponents.hour ?? 0, timeComponents.minute ?? 0)
         Task {
-            _ = try? await APIService.shared.createEvent(date: date, text: title)
+            _ = try? await APIService.shared.createEvent(date: date, text: title, time: timeStr)
         }
 
         newTitle = ""
