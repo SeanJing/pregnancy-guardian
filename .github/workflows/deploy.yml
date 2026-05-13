@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  test-python:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,9 +17,20 @@ jobs:
       - run: pip install fastapi uvicorn python-multipart aiofiles pytest httpx
       - run: python -m pytest server/test_app.py -v
 
+  test-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx vitest run
+
   build-and-deploy:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test-python, test-worker]
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
@@ -30,16 +41,39 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-      # Deploy Worker
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
 
-      # Deploy Pages
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name pregnancy-guardian
+
+  smoke-test:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    steps:
+      - name: Smoke test live API
+        run: |
+          BASE="https://pregnancy-guardian-api.hfjingxiao13.workers.dev/api"
+          
+          echo "Testing /api/settings..."
+          curl -sf "$BASE/settings" | jq .
+          
+          echo "Testing /api/calendar..."
+          curl -sf "$BASE/calendar?from=2026-01-01&to=2026-01-07" | jq .
+          
+          echo "Testing /api/gallery..."
+          curl -sf "$BASE/gallery" | jq 'type == "array"'
+          
+          echo "Testing /api/documents..."
+          curl -sf "$BASE/documents" | jq 'type == "array"'
+          
+          echo "Testing /api/trends/weight..."
+          curl -sf "$BASE/trends/weight" | jq 'type == "array"'
+          
+          echo "✓ All smoke tests passed"
