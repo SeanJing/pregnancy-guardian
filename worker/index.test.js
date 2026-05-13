@@ -1,11 +1,26 @@
-import { env } from 'cloudflare:test'
 import { describe, it, expect } from 'vitest'
-import app from './index'
+import { Miniflare } from 'miniflare'
+import { readFileSync } from 'fs'
+
+let mf
+
+async function setup() {
+  if (mf) return mf
+  mf = new Miniflare({
+    modules: true,
+    scriptPath: './worker/index.js',
+    d1Databases: ['DB'],
+    r2Buckets: ['BUCKET'],
+    compatibilityDate: '2024-01-01',
+  })
+  return mf
+}
 
 async function req(method, path, body) {
+  const m = await setup()
   const opts = { method, headers: { 'Content-Type': 'application/json' } }
   if (body) opts.body = JSON.stringify(body)
-  return app.fetch(new Request(`http://localhost${path}`, opts), env)
+  return m.dispatchFetch(`http://localhost${path}`, opts)
 }
 
 describe('Settings', () => {
