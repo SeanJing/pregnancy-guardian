@@ -218,6 +218,7 @@ struct TodoSectionView: View {
 
     private func addTodo() {
         guard !newText.isEmpty else { return }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         Task {
             _ = try? await APIService.shared.createTodo(date: date, text: newText)
             newText = ""
@@ -226,6 +227,7 @@ struct TodoSectionView: View {
     }
 
     private func toggleTodo(_ todo: TodoItem) {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         Task {
             try? await APIService.shared.updateTodo(id: todo.id, text: todo.text, done: !todo.done)
             await onRefresh()

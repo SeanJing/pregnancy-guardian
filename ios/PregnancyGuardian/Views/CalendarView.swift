@@ -60,6 +60,7 @@ struct CalendarView: View {
                             let hasData = data[key] != nil
 
                             Button {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                 selectedDate = key
                             } label: {
                                 VStack(spacing: 4) {
