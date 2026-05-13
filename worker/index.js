@@ -16,10 +16,26 @@ async function initDB(db) {
 
 app.use('/api/*', async (c, next) => {
   await initDB(c.env.DB)
-  // Migrate: add caption column if missing
-  try { await c.env.DB.exec("ALTER TABLE gallery ADD COLUMN caption TEXT DEFAULT ''") } catch {}
+  await runMigrations(c.env.DB)
   await next()
 })
+
+async function runMigrations(db) {
+  const row = await db.prepare("SELECT value FROM settings WHERE key='schema_version'").first()
+  const version = parseInt(row?.value || '0')
+
+  if (version < 1) {
+    try { await db.exec("ALTER TABLE gallery ADD COLUMN caption TEXT DEFAULT ''") } catch {}
+  }
+
+  // Add future migrations here:
+  // if (version < 2) { await db.exec("...") }
+
+  const latest = 1
+  if (version < latest) {
+    await db.prepare("INSERT INTO settings (key,value) VALUES ('schema_version',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(String(latest)).run()
+  }
+}
 
 // --- Calendar (aggregated) ---
 app.get('/api/calendar', async (c) => {
