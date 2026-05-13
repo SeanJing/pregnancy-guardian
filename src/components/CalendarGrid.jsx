@@ -3,7 +3,7 @@ import DayCell from './DayCell'
 import DietSection from './DietSection'
 import MonitorSection from './MonitorSection'
 import ExerciseSection from './ExerciseSection'
-import TodoSection from './TodoSection'
+import EventsSection from './EventsSection'
 import WeeklyArticle from './WeeklyArticle'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -42,13 +42,13 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
       <div className="grid grid-cols-7 gap-1">
         {dates.map(date => {
           const key = dayKey(date)
-          const dd = data[key] || { todos: [], diet: {}, monitor: {}, exercises: [] }
+          const dd = data[key] || { events: [], diet: {}, monitor: {}, exercises: [] }
           const isToday = key === todayKey
           const isActive = key === activeKey
           const hasDiet = Object.values(dd.diet || {}).some(m => m?.name)
           const hasMonitor = Object.keys(dd.monitor || {}).length > 0
           const hasExercises = (dd.exercises || []).length > 0
-          const hasContent = dd.todos.length > 0 || hasDiet || hasMonitor || hasExercises
+          const hasContent = dd.events?.length > 0 || hasDiet || hasMonitor || hasExercises
 
           return (
             <DayCell
@@ -79,7 +79,7 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
                 <DietSection diet={dayData.diet || {}} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
                 <MonitorSection monitor={dayData.monitor || {}} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
                 <ExerciseSection exercises={dayData.exercises || []} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
-                <TodoSection todos={dayData.todos || []} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
+                <EventsSection events={dayData.events || []} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
               </div>
             )}
           </div>

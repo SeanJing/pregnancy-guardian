@@ -5,7 +5,7 @@ const app = new Hono()
 app.use('*', cors())
 
 async function initDB(db) {
-  await db.exec("CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, text TEXT NOT NULL, done INTEGER DEFAULT 0);")
+  await db.exec("CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, text TEXT NOT NULL, done INTEGER DEFAULT 0);")
   await db.exec("CREATE TABLE IF NOT EXISTS diet (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, meal TEXT NOT NULL, name TEXT DEFAULT '', instructions TEXT DEFAULT '');")
   await db.exec("CREATE TABLE IF NOT EXISTS monitor (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, metric TEXT NOT NULL, value TEXT NOT NULL);")
   await db.exec("CREATE TABLE IF NOT EXISTS exercises (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, activity TEXT DEFAULT '', steps INTEGER DEFAULT 0, duration INTEGER DEFAULT 0);")
@@ -27,11 +27,14 @@ async function runMigrations(db) {
   if (version < 1) {
     try { await db.exec("ALTER TABLE gallery ADD COLUMN caption TEXT DEFAULT ''") } catch {}
   }
+  if (version < 2) {
+    try { await db.exec("ALTER TABLE todos RENAME TO events") } catch {}
+  }
 
   // Add future migrations here:
-  // if (version < 2) { await db.exec("...") }
+  // if (version < 3) { await db.exec("...") }
 
-  const latest = 1
+  const latest = 2
   if (version < latest) {
     await db.prepare("INSERT INTO settings (key,value) VALUES ('schema_version',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(String(latest)).run()
   }
@@ -43,13 +46,13 @@ app.get('/api/calendar', async (c) => {
   const from = c.req.query('from')
   const to = c.req.query('to')
   const data = {}
-  const ensure = (d) => { if (!data[d]) data[d] = { todos: [], diet: {}, monitor: {}, exercises: [] } }
+  const ensure = (d) => { if (!data[d]) data[d] = { events: [], diet: {}, monitor: {}, exercises: [] } }
 
   const where = (from && to) ? ' WHERE date >= ? AND date <= ?' : ''
   const params = (from && to) ? [from, to] : []
 
-  for (const r of (await db.prepare(`SELECT id, date, text, done FROM todos${where} ORDER BY id`).bind(...params).all()).results) {
-    ensure(r.date); data[r.date].todos.push({ id: r.id, text: r.text, done: !!r.done })
+  for (const r of (await db.prepare(`SELECT id, date, text, done FROM events${where} ORDER BY id`).bind(...params).all()).results) {
+    ensure(r.date); data[r.date].events.push({ id: r.id, text: r.text, done: !!r.done })
   }
   for (const r of (await db.prepare(`SELECT id, date, meal, name, instructions FROM diet${where} ORDER BY id`).bind(...params).all()).results) {
     ensure(r.date); data[r.date].diet[r.meal] = { id: r.id, name: r.name, instructions: r.instructions }
@@ -66,9 +69,9 @@ app.get('/api/calendar', async (c) => {
 app.get('/api/calendar/:date', async (c) => {
   const db = c.env.DB
   const date = c.req.param('date')
-  const data = { todos: [], diet: {}, monitor: {}, exercises: [] }
-  for (const r of (await db.prepare('SELECT id, text, done FROM todos WHERE date=? ORDER BY id').bind(date).all()).results) {
-    data.todos.push({ id: r.id, text: r.text, done: !!r.done })
+  const data = { events: [], diet: {}, monitor: {}, exercises: [] }
+  for (const r of (await db.prepare('SELECT id, text, done FROM events WHERE date=? ORDER BY id').bind(date).all()).results) {
+    data.events.push({ id: r.id, text: r.text, done: !!r.done })
   }
   for (const r of (await db.prepare('SELECT id, meal, name, instructions FROM diet WHERE date=? ORDER BY id').bind(date).all()).results) {
     data.diet[r.meal] = { id: r.id, name: r.name, instructions: r.instructions }
@@ -83,22 +86,22 @@ app.get('/api/calendar/:date', async (c) => {
 })
 
 // --- Todos ---
-app.post('/api/todos', async (c) => {
+app.post('/api/events', async (c) => {
   const db = c.env.DB
   const { date, text, done } = await c.req.json()
-  const res = await db.prepare('INSERT INTO todos (date, text, done) VALUES (?, ?, ?) RETURNING id').bind(date, text, done ? 1 : 0).first()
+  const res = await db.prepare('INSERT INTO events (date, text, done) VALUES (?, ?, ?) RETURNING id').bind(date, text, done ? 1 : 0).first()
   return c.json({ id: res.id, date, text, done: !!done })
 })
 
-app.put('/api/todos/:id', async (c) => {
+app.put('/api/events/:id', async (c) => {
   const db = c.env.DB
   const { text, done } = await c.req.json()
-  await db.prepare('UPDATE todos SET text=?, done=? WHERE id=?').bind(text, done ? 1 : 0, Number(c.req.param('id'))).run()
+  await db.prepare('UPDATE events SET text=?, done=? WHERE id=?').bind(text, done ? 1 : 0, Number(c.req.param('id'))).run()
   return c.json({ ok: true })
 })
 
-app.delete('/api/todos/:id', async (c) => {
-  await c.env.DB.prepare('DELETE FROM todos WHERE id=?').bind(Number(c.req.param('id'))).run()
+app.delete('/api/events/:id', async (c) => {
+  await c.env.DB.prepare('DELETE FROM events WHERE id=?').bind(Number(c.req.param('id'))).run()
   return c.json({ ok: true })
 })
 
@@ -223,9 +226,9 @@ app.get('/api/search', async (c) => {
   const q = (c.req.query('q') || '').trim()
   if (!q) return c.json({ calendar: [], gallery: [], documents: [] })
   const like = `%${q}%`
-  const todosDates = await db.prepare('SELECT DISTINCT date FROM todos WHERE text LIKE ?').bind(like).all()
+  const eventsDates = await db.prepare('SELECT DISTINCT date FROM events WHERE text LIKE ?').bind(like).all()
   const dietDates = await db.prepare('SELECT DISTINCT date FROM diet WHERE name LIKE ? OR instructions LIKE ?').bind(like, like).all()
-  const dates = [...new Set([...todosDates.results.map(r => r.date), ...dietDates.results.map(r => r.date)])]
+  const dates = [...new Set([...eventsDates.results.map(r => r.date), ...dietDates.results.map(r => r.date)])]
   const calendar = dates.sort().reverse().map(d => ({ date: d }))
   const gallery = (await db.prepare('SELECT id, filename, original_name, created_at FROM gallery WHERE original_name LIKE ?').bind(like).all()).results.map(r => ({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name, date: r.created_at }))
   const documents = (await db.prepare('SELECT id, filename, original_name, size, created_at FROM documents WHERE original_name LIKE ?').bind(like).all()).results.map(r => ({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name, size: r.size, date: r.created_at }))

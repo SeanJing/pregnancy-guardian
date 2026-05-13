@@ -1,39 +1,39 @@
 import { useState } from 'react'
 import { api } from '../api'
 
-export default function TodoSection({ todos: initialTodos, date, updateDay }) {
-  const [todos, setTodos] = useState(initialTodos)
+export default function EventsSection({ events: initialEvents, date, updateDay }) {
+  const [events, setEvents] = useState(initialEvents)
   const [text, setText] = useState('')
 
-  const sync = (newTodos) => { setTodos(newTodos); updateDay(d => ({ ...d, todos: newTodos })) }
+  const sync = (newTodos) => { setEvents(newTodos); updateDay(d => ({ ...d, events: newTodos })) }
 
   const add = async (e) => {
     e.preventDefault()
     if (!text.trim()) return
-    const res = await api.createTodo(date, text.trim())
-    sync([...todos, { id: res.id, text: text.trim(), done: false }])
+    const res = await api.createEvent(date, text.trim())
+    sync([...events, { id: res.id, text: text.trim(), done: false }])
     setText('')
   }
 
   const toggle = async (todo) => {
-    const updated = todos.map(t => t.id === todo.id ? { ...t, done: !t.done } : t)
+    const updated = events.map(t => t.id === todo.id ? { ...t, done: !t.done } : t)
     sync(updated)
-    api.updateTodo(todo.id, { text: todo.text, done: !todo.done })
+    api.updateEvent(todo.id, { text: todo.text, done: !todo.done })
   }
 
   const remove = async (id) => {
-    sync(todos.filter(t => t.id !== id))
-    api.deleteTodo(id)
+    sync(events.filter(t => t.id !== id))
+    api.deleteEvent(id)
   }
 
   return (
     <section>
       <h3 className="text-sm font-semibold text-primary uppercase tracking-wide mb-3 flex items-center gap-1.5">
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        To-Dos
+        Events
       </h3>
       <ul className="space-y-1.5">
-        {todos.map(t => (
+        {events.map(t => (
           <li key={t.id} className="flex items-center gap-2 group">
             <button onClick={() => toggle(t)} className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-colors duration-150 ${t.done ? 'bg-primary border-primary' : 'border-gray-300'}`} aria-label="Toggle task">
               {t.done && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>}
@@ -46,7 +46,7 @@ export default function TodoSection({ todos: initialTodos, date, updateDay }) {
         ))}
       </ul>
       <form onSubmit={add} className="mt-2 flex gap-2">
-        <input value={text} onChange={e => setText(e.target.value)} type="text" placeholder="Add a task…" className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150" required />
+        <input value={text} onChange={e => setText(e.target.value)} type="text" placeholder="Add an event…" className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150" required />
         <button type="submit" className="px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-light cursor-pointer transition-colors duration-150 active:scale-95">Add</button>
       </form>
     </section>

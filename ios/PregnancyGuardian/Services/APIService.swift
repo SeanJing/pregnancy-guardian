@@ -19,21 +19,21 @@ class APIService {
         return try JSONDecoder().decode(DayData.self, from: data)
     }
 
-    // MARK: - Todos
+    // MARK: - Events
 
-    func createTodo(date: String, text: String) async throws -> TodoItem {
+    func createEvent(date: String, text: String) async throws -> TodoItem {
         let body = ["date": date, "text": text, "done": "false"]
-        let data = try await post("/todos", body: body)
+        let data = try await post("/events", body: body)
         return try JSONDecoder().decode(TodoItem.self, from: data)
     }
 
-    func updateTodo(id: Int, text: String, done: Bool) async throws {
+    func updateEvent(id: Int, text: String, done: Bool) async throws {
         let body: [String: Any] = ["text": text, "done": done]
-        _ = try await put("/todos/\(id)", jsonBody: body)
+        _ = try await put("/events/\(id)", jsonBody: body)
     }
 
-    func deleteTodo(id: Int) async throws {
-        _ = try await delete("/todos/\(id)")
+    func deleteEvent(id: Int) async throws {
+        _ = try await delete("/events/\(id)")
     }
 
     // MARK: - Diet

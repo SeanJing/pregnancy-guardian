@@ -96,19 +96,22 @@ struct EventsSectionView: View {
         guard !newTitle.isEmpty else { return }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
 
+        // Save to native calendar
         let event = EKEvent(eventStore: store)
         event.title = newTitle
         event.startDate = dateObj
         event.endDate = Calendar.current.date(byAdding: .hour, value: 1, to: dateObj)!
         event.calendar = store.defaultCalendarForNewEvents
-        event.addAlarm(EKAlarm(relativeOffset: -3600)) // 1 hour before
+        event.addAlarm(EKAlarm(relativeOffset: -3600))
+        try? store.save(event, span: .thisEvent)
 
-        do {
-            try store.save(event, span: .thisEvent)
-            newTitle = ""
-            loadEvents()
-        } catch {
-            print("Failed to save event: \(error)")
+        // Save to API (so it shows on web too)
+        let title = newTitle
+        Task {
+            _ = try? await APIService.shared.createEvent(date: date, text: title)
         }
+
+        newTitle = ""
+        loadEvents()
     }
 }

@@ -35,9 +35,9 @@ export const api = {
   getDay: (date) => json(`/calendar/${date}`),
 
   // Todos
-  createTodo: (date, text) => { invalidateCalendar(); return json('/todos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date, text, done: false }) }) },
-  updateTodo: (id, data) => { invalidateCalendar(); return json(`/todos/${id}`, jsonBody(data)) },
-  deleteTodo: (id) => { invalidateCalendar(); return json(`/todos/${id}`, { method: 'DELETE' }) },
+  createEvent: (date, text) => { invalidateCalendar(); return json('/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date, text, done: false }) }) },
+  updateEvent: (id, data) => { invalidateCalendar(); return json(`/events/${id}`, jsonBody(data)) },
+  deleteEvent: (id) => { invalidateCalendar(); return json(`/events/${id}`, { method: 'DELETE' }) },
 
   // Diet
   saveDiet: (date, meal, data) => { invalidateCalendar(); return json(`/diet/${date}/${meal}`, jsonBody(data)) },

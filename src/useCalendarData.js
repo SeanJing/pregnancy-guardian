@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from './api'
 
-const EMPTY = { todos: [], diet: {}, monitor: {}, exercises: [] }
+const EMPTY = { events: [], diet: {}, monitor: {}, exercises: [] }
 
 function formatDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
