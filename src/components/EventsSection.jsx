@@ -37,9 +37,9 @@ export default function EventsSection({ events: initialEvents, date, updateDay }
           </li>
         ))}
       </ul>
-      <form onSubmit={add} className="mt-2 flex gap-2">
-        <input value={text} onChange={e => setText(e.target.value)} type="text" placeholder="Add an event…" className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150" required />
-        <input value={time} onChange={e => setTime(e.target.value)} type="time" className="px-2 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150" />
+      <form onSubmit={add} className="mt-2 flex flex-wrap gap-2">
+        <input value={text} onChange={e => setText(e.target.value)} type="text" placeholder="Add an event…" className="flex-1 min-w-[120px] px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150" required />
+        <input value={time} onChange={e => setTime(e.target.value)} type="time" className="w-28 px-2 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-primary transition-colors duration-150" />
         <button type="submit" className="px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-light cursor-pointer transition-colors duration-150 active:scale-95">Add</button>
       </form>
     </section>
