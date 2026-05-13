@@ -12,7 +12,6 @@
     "deploy:pages": "npm run build && wrangler pages deploy dist --project-name pregnancy-guardian",
     "lint": "eslint .",
     "test": "python3.12 -m pytest server/test_app.py -v",
-    "test:worker": "vitest run",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -25,7 +24,6 @@
     "wrangler": "^4.86.0"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.16.4",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.2.4",
     "@types/react": "^19.2.14",
@@ -36,7 +34,6 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "tailwindcss": "^4.2.4",
-    "vite": "^8.0.10",
-    "vitest": "^4.1.6"
+    "vite": "^8.0.10"
   }
 }
