@@ -38,30 +38,30 @@ struct EventsSectionView: View {
             }
 
             // Merged events list
-            ForEach(displayEvents) { event in
-                HStack(spacing: 8) {
-                    Circle()
-                        .fill(event.color)
-                        .frame(width: 8, height: 8)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(event.title)
-                            .font(.subheadline)
-                        if !event.time.isEmpty {
-                            Text(event.time)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+            List {
+                ForEach(displayEvents) { event in
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(event.color)
+                            .frame(width: 8, height: 8)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(event.title)
+                                .font(.subheadline)
+                            if !event.time.isEmpty {
+                                Text(event.time)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
                         }
+                        Spacer()
+                        Text(event.source == "calendar" ? "📅" : "☁️")
+                            .font(.caption2)
                     }
-                    Spacer()
-                    Text(event.source == "calendar" ? "📅" : "☁️")
-                        .font(.caption2)
-                    Button { deleteEvent(event) } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.red.opacity(0.4))
-                    }
-                    .buttonStyle(.plain)
                 }
+                .onDelete(perform: deleteEvents)
             }
+            .listStyle(.plain)
+            .frame(minHeight: CGFloat(displayEvents.count * 44 + 20))
 
             if displayEvents.isEmpty {
                 Text("No events this day")
@@ -149,6 +149,12 @@ struct EventsSectionView: View {
         // Sort by time
         merged.sort { $0.time < $1.time }
         displayEvents = merged
+    }
+
+    private func deleteEvents(at offsets: IndexSet) {
+        for i in offsets {
+            deleteEvent(displayEvents[i])
+        }
     }
 
     private func deleteEvent(_ event: DisplayEvent) {
