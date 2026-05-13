@@ -54,6 +54,7 @@ export const api = {
   getGallery: () => cachedGet('/gallery'),
   uploadPhotos: (files) => { invalidate('/gallery'); const fd = new FormData(); files.forEach(f => fd.append('photos', f)); return json('/gallery', { method: 'POST', body: fd }) },
   deletePhoto: (id) => { invalidate('/gallery'); return json(`/gallery/${id}`, { method: 'DELETE' }) },
+  updateCaption: (id, caption) => json(`/gallery/${id}/caption`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caption }) }),
 
   // Documents
   getDocuments: () => cachedGet('/documents'),

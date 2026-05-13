@@ -85,6 +85,14 @@ export default function GalleryPage() {
           <div className="flex-1 flex items-center justify-center p-4">
             <img src={UPLOADS_BASE + photos[viewing].url} alt={photos[viewing].name} className="max-w-full max-h-full object-contain" />
           </div>
+          <div className="px-4 pb-4">
+            <input
+              defaultValue={photos[viewing].caption || ''}
+              onBlur={e => { const v = e.target.value; api.updateCaption(photos[viewing].id, v); setPhotos(prev => prev.map((p, i) => i === viewing ? { ...p, caption: v } : p)) }}
+              placeholder="Add a caption…"
+              className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 text-white placeholder-white/40 border border-white/20 focus:outline-none focus:border-white/50"
+            />
+          </div>
         </div>
       )}
     </>

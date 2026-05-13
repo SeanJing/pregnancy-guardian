@@ -9,7 +9,7 @@ async function initDB(db) {
   await db.exec("CREATE TABLE IF NOT EXISTS diet (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, meal TEXT NOT NULL, name TEXT DEFAULT '', instructions TEXT DEFAULT '');")
   await db.exec("CREATE TABLE IF NOT EXISTS monitor (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, metric TEXT NOT NULL, value TEXT NOT NULL);")
   await db.exec("CREATE TABLE IF NOT EXISTS exercises (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, activity TEXT DEFAULT '', steps INTEGER DEFAULT 0, duration INTEGER DEFAULT 0);")
-  await db.exec("CREATE TABLE IF NOT EXISTS gallery (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')));")
+  await db.exec("CREATE TABLE IF NOT EXISTS gallery (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, caption TEXT DEFAULT '', created_at TEXT DEFAULT (datetime('now')));")
   await db.exec("CREATE TABLE IF NOT EXISTS documents (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, size INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')));")
   await db.exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);")
 }
@@ -132,8 +132,14 @@ app.delete('/api/exercises/:id', async (c) => {
 
 // --- Gallery ---
 app.get('/api/gallery', async (c) => {
-  const rows = await c.env.DB.prepare('SELECT id, filename, original_name, created_at FROM gallery ORDER BY created_at DESC').all()
-  return c.json(rows.results.map(r => ({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name, date: r.created_at })))
+  const rows = await c.env.DB.prepare('SELECT id, filename, original_name, caption, created_at FROM gallery ORDER BY created_at DESC').all()
+  return c.json(rows.results.map(r => ({ id: r.id, url: `/uploads/${r.filename}`, name: r.original_name, caption: r.caption || '', date: r.created_at })))
+})
+
+app.put('/api/gallery/:id/caption', async (c) => {
+  const { caption } = await c.req.json()
+  await c.env.DB.prepare('UPDATE gallery SET caption=? WHERE id=?').bind(caption || '', Number(c.req.param('id'))).run()
+  return c.json({ ok: true })
 })
 
 app.post('/api/gallery', async (c) => {
