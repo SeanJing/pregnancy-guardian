@@ -55,6 +55,11 @@ struct EventsSectionView: View {
                     Spacer()
                     Text(event.source == "calendar" ? "📅" : "☁️")
                         .font(.caption2)
+                    Button { deleteEvent(event) } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red.opacity(0.4))
+                    }
+                    .buttonStyle(.plain)
                 }
             }
 
@@ -146,6 +151,22 @@ struct EventsSectionView: View {
         displayEvents = merged
     }
 
+    private func deleteEvent(_ event: DisplayEvent) {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+
+        if event.source == "calendar", let calId = event.id.replacingOccurrences(of: "cal_", with: "").nilIfEmpty,
+           let ekEvent = store.event(withIdentifier: calId) {
+            try? store.remove(ekEvent, span: .thisEvent)
+        }
+
+        if event.source == "api", let idStr = event.id.replacingOccurrences(of: "api_", with: "").nilIfEmpty,
+           let id = Int(idStr) {
+            Task { try? await APIService.shared.deleteEvent(id: id) }
+        }
+
+        displayEvents.removeAll { $0.id == event.id }
+    }
+
     private func addEvent() {
         guard !newTitle.isEmpty else { return }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -176,4 +197,8 @@ struct EventsSectionView: View {
 
         newTitle = ""
     }
+}
+
+private extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
 }
