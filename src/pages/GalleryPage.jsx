@@ -64,9 +64,12 @@ export default function GalleryPage() {
                 <h3 className="text-xs font-semibold text-ink/50 uppercase tracking-wide mb-2">{date}</h3>
                 <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                   {items.map(p => (
-                    <button key={p.id} onClick={() => setViewing(photos.indexOf(p))} className="aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity duration-150">
-                      <img src={UPLOADS_BASE + p.url} alt={p.name} className="w-full h-full object-cover" />
-                    </button>
+                    <div key={p.id} className="flex flex-col">
+                      <button onClick={() => setViewing(photos.indexOf(p))} className="aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity duration-150">
+                        <img src={UPLOADS_BASE + p.url} alt={p.name} className="w-full h-full object-cover" />
+                      </button>
+                      {p.caption && <p className="text-xs text-ink/50 mt-1 truncate">{p.caption}</p>}
+                    </div>
                   ))}
                 </div>
               </div>
