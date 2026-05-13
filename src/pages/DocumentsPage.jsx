@@ -106,7 +106,7 @@ export default function DocumentsPage() {
           <h2 className="text-xl font-bold text-ink font-heading">Documents</h2>
           <label className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-light cursor-pointer transition-colors duration-150 active:scale-95">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-            Upload
+            Add Document
             <input type="file" multiple className="hidden" onChange={addFiles} />
           </label>
         </div>
