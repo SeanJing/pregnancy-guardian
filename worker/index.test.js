@@ -1,26 +1,29 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import { Miniflare } from 'miniflare'
-import { readFileSync } from 'fs'
+import { build } from 'esbuild'
 
 let mf
 
-async function setup() {
-  if (mf) return mf
+beforeAll(async () => {
+  const result = await build({
+    entryPoints: ['./worker/index.js'],
+    bundle: true,
+    format: 'esm',
+    write: false,
+  })
   mf = new Miniflare({
     modules: true,
-    scriptPath: './worker/index.js',
+    script: result.outputFiles[0].text,
     d1Databases: ['DB'],
     r2Buckets: ['BUCKET'],
     compatibilityDate: '2024-01-01',
   })
-  return mf
-}
+})
 
 async function req(method, path, body) {
-  const m = await setup()
   const opts = { method, headers: { 'Content-Type': 'application/json' } }
   if (body) opts.body = JSON.stringify(body)
-  return m.dispatchFetch(`http://localhost${path}`, opts)
+  return mf.dispatchFetch(`http://localhost${path}`, opts)
 }
 
 describe('Settings', () => {

@@ -12,7 +12,6 @@
     "deploy:pages": "npm run build && wrangler pages deploy dist --project-name pregnancy-guardian",
     "lint": "eslint .",
     "test": "python3.12 -m pytest server/test_app.py -v",
-    "test:worker": "vitest run",
     "preview": "vite preview"
   },
   "dependencies": {
