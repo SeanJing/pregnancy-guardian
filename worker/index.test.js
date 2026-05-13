@@ -27,10 +27,11 @@ async function req(method, path, body) {
 }
 
 describe('Settings', () => {
-  it('GET /api/settings returns empty', async () => {
+  it('GET /api/settings returns initial state', async () => {
     const res = await req('GET', '/api/settings')
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({})
+    const data = await res.json()
+    expect(data.schema_version).toBe('3')
   })
 
   it('PUT /api/settings saves data', async () => {
