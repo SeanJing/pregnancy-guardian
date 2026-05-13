@@ -102,6 +102,7 @@ struct CalendarView: View {
                 DayDetailFullView(date: key, dayData: dayData, onRefresh: { await loadWeek() })
             }
             .task { await loadWeek() }
+            .refreshable { await loadWeek() }
         }
     }
 

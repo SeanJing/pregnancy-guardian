@@ -86,6 +86,7 @@ struct GalleryView: View {
                 }
             }
             .task { await load() }
+            .refreshable { await load() }
         }
     }
 

@@ -52,6 +52,7 @@ struct DocumentsView: View {
                 Task { await uploadFiles(result) }
             }
             .task { await load() }
+            .refreshable { await load() }
         }
     }
 
