@@ -82,8 +82,8 @@ export default function GalleryPage() {
             <span className="text-white/60 text-sm">{photos[viewing].name}</span>
             <button onClick={() => remove(viewing)} className="text-red-400 hover:text-red-300 text-sm font-medium cursor-pointer transition-colors duration-150">Delete</button>
           </div>
-          <div className="flex-1 flex items-center justify-center p-4">
-            <img src={UPLOADS_BASE + photos[viewing].url} alt={photos[viewing].name} className="max-w-full max-h-full object-contain" />
+          <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+            <img src={UPLOADS_BASE + photos[viewing].url} alt={photos[viewing].name} className="max-w-full max-h-[70vh] object-contain" />
           </div>
           <div className="px-4 pb-4">
             <input
