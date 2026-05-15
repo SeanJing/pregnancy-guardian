@@ -3,15 +3,19 @@ import SwiftUI
 struct ContentView: View {
     @AppStorage("dueDate") private var dueDate: String = ""
     @State private var selectedTab = 0
+    @State private var loaded = false
 
     var body: some View {
-        if dueDate.isEmpty {
-            OnboardingView(dueDate: $dueDate)
-        } else {
-            TabView(selection: $selectedTab) {
-                HomeView()
-                    .tabItem { Label("Home", systemImage: "heart.fill") }
-                    .tag(0)
+        Group {
+            if !loaded {
+                ProgressView()
+            } else if dueDate.isEmpty {
+                OnboardingView(dueDate: $dueDate)
+            } else {
+                TabView(selection: $selectedTab) {
+                    HomeView()
+                        .tabItem { Label("Home", systemImage: "heart.fill") }
+                        .tag(0)
 
                 CalendarView()
                     .tabItem { Label("Calendar", systemImage: "calendar") }
@@ -30,6 +34,18 @@ struct ContentView: View {
                     .tag(4)
             }
             .tint(Color("Primary"))
+            }
+        }
+        .task {
+            if let settings = try? await APIService.shared.getSettings(), let remote = settings["dueDate"], !remote.isEmpty {
+                dueDate = remote
+            }
+            loaded = true
+        }
+        .onChange(of: dueDate) { _, newValue in
+            if !newValue.isEmpty {
+                Task { try? await APIService.shared.saveSettings(["dueDate": newValue]) }
+            }
         }
     }
 }
