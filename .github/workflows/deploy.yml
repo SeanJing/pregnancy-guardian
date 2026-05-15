@@ -3,6 +3,12 @@ name: Deploy
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'worker/**'
+      - 'server/**'
+      - 'package.json'
+      - 'wrangler.toml'
   pull_request:
     branches: [main]
 
