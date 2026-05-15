@@ -113,8 +113,9 @@ struct CalendarView: View {
         if let cached = try? await APIService.shared.getCalendarCached(from: from, to: to) {
             data = cached
             loading = false
+            return // Cache is fresh enough, skip network call
         }
-        // Fetch fresh data (updates silently, no flicker)
+        // No cache — fetch from network
         if let fresh = try? await APIService.shared.getCalendarFresh(from: from, to: to) {
             data = fresh
         }
