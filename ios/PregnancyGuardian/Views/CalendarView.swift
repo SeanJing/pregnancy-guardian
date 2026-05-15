@@ -98,7 +98,7 @@ struct CalendarView: View {
             .background(Color("Surface"))
             .navigationTitle("Calendar")
             .navigationDestination(item: $selectedDate) { key in
-                let dayData = data[key] ?? DayData(todos: [], diet: [:], monitor: [:], exercises: [])
+                let dayData = data[key] ?? DayData(events: [], diet: [:], monitor: [:], exercises: [])
                 DayDetailFullView(date: key, dayData: dayData, onRefresh: { await loadWeek() })
             }
             .task { await loadWeek() }

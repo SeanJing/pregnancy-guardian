@@ -1,7 +1,7 @@
 import Foundation
 
 struct DayData: Codable {
-    var todos: [TodoItem]
+    var events: [TodoItem]
     var diet: [String: DietItem]
     var monitor: [String: MonitorItem]
     var exercises: [ExerciseItem]
