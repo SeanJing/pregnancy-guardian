@@ -21,10 +21,10 @@ class APIService {
 
     // MARK: - Events
 
-    func createEvent(date: String, text: String, time: String = "") async throws -> TodoItem {
+    func createEvent(date: String, text: String, time: String = "") async throws -> EventItem {
         let body = ["date": date, "text": text, "time": time]
         let data = try await post("/events", body: body)
-        return try JSONDecoder().decode(TodoItem.self, from: data)
+        return try JSONDecoder().decode(EventItem.self, from: data)
     }
 
     func updateEvent(id: Int, text: String, done: Bool) async throws {

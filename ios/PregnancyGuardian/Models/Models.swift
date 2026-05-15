@@ -1,16 +1,16 @@
 import Foundation
 
 struct DayData: Codable {
-    var events: [TodoItem]
+    var events: [EventItem]
     var diet: [String: DietItem]
     var monitor: [String: MonitorItem]
     var exercises: [ExerciseItem]
 }
 
-struct TodoItem: Codable, Identifiable {
+struct EventItem: Codable, Identifiable {
     let id: Int
     var text: String
-    var done: Bool
+    var time: String?
 }
 
 struct DietItem: Codable {
