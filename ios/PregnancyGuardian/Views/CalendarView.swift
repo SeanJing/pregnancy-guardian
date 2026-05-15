@@ -109,22 +109,26 @@ struct CalendarView: View {
     private func loadWeek() async {
         let from = dateKey(weekStart)
         let to = dateKey(Calendar.current.date(byAdding: .day, value: 6, to: weekStart)!)
-        // Show cached data immediately
+        // Show cached data immediately if available
         if let cached = try? await APIService.shared.getCalendarCached(from: from, to: to) {
             data = cached
             loading = false
         }
-        // Refresh in background
-        do {
-            let fresh = try await APIService.shared.getCalendarFresh(from: from, to: to)
+        // Fetch fresh data (updates silently, no flicker)
+        if let fresh = try? await APIService.shared.getCalendarFresh(from: from, to: to) {
             data = fresh
-        } catch {}
+        }
         loading = false
     }
 
     private func changeWeek(_ dir: Int) {
         selectedDate = nil
         weekStart = Calendar.current.date(byAdding: .day, value: dir * 7, to: weekStart)!
+        // Show cached data for new week immediately (or empty if first visit)
+        let from = dateKey(weekStart)
+        let to = dateKey(Calendar.current.date(byAdding: .day, value: 6, to: weekStart)!)
+        let key = "\(from)_\(to)"
+        data = APIService.shared.calendarCacheSync(key: key) ?? [:]
         Task { await loadWeek() }
     }
 

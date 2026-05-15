@@ -10,6 +10,8 @@ class APIService {
 
     func invalidateCalendarCache() { calendarCache.removeAll() }
 
+    func calendarCacheSync(key: String) -> [String: DayData]? { calendarCache[key] }
+
     // MARK: - Calendar
 
     func getCalendar(from: String, to: String) async throws -> [String: DayData] {
