@@ -99,7 +99,11 @@ struct CalendarView: View {
             .navigationTitle("Calendar")
             .navigationDestination(item: $selectedDate) { key in
                 let dayData = data[key] ?? DayData(events: [], diet: [:], monitor: [:], exercises: [])
-                DayDetailFullView(date: key, dayData: dayData, onRefresh: { await loadWeek() })
+                DayDetailFullView(date: key, dayData: dayData, onRefresh: { await loadWeek() }, updateDay: { updater in
+                    data[key] = updater(data[key] ?? DayData(events: [], diet: [:], monitor: [:], exercises: []))
+                    let cacheKey = "\(dateKey(weekStart))_\(dateKey(Calendar.current.date(byAdding: .day, value: 6, to: weekStart)!))"
+                    APIService.shared.updateCalendarCache(key: cacheKey, data: data)
+                })
             }
             .task { await loadWeek() }
             .refreshable { await loadWeek() }

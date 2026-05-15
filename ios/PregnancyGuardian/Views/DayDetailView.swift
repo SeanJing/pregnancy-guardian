@@ -4,12 +4,13 @@ struct DayDetailView: View {
     let date: String
     let dayData: DayData
     let onRefresh: () async -> Void
+    let updateDay: ((DayData) -> DayData) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            DietSectionView(date: date, diet: dayData.diet)
-            MonitorSectionView(date: date, monitor: dayData.monitor)
-            ExerciseSectionView(date: date, exercises: dayData.exercises, onRefresh: onRefresh)
+            DietSectionView(date: date, diet: dayData.diet, updateDay: updateDay)
+            MonitorSectionView(date: date, monitor: dayData.monitor, updateDay: updateDay)
+            ExerciseSectionView(date: date, exercises: dayData.exercises, onRefresh: onRefresh, updateDay: updateDay)
             EventsSectionView(date: date, apiEvents: dayData.events)
         }
         .padding()
@@ -23,6 +24,7 @@ struct DayDetailFullView: View {
     let date: String
     let dayData: DayData
     let onRefresh: () async -> Void
+    let updateDay: ((DayData) -> DayData) -> Void
 
     private var title: String {
         let f = DateFormatter()
@@ -35,9 +37,9 @@ struct DayDetailFullView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                DietSectionView(date: date, diet: dayData.diet)
-                MonitorSectionView(date: date, monitor: dayData.monitor)
-                ExerciseSectionView(date: date, exercises: dayData.exercises, onRefresh: onRefresh)
+                DietSectionView(date: date, diet: dayData.diet, updateDay: updateDay)
+                MonitorSectionView(date: date, monitor: dayData.monitor, updateDay: updateDay)
+                ExerciseSectionView(date: date, exercises: dayData.exercises, onRefresh: onRefresh, updateDay: updateDay)
                 EventsSectionView(date: date, apiEvents: dayData.events)
             }
             .padding()
@@ -53,6 +55,7 @@ struct DayDetailFullView: View {
 struct DietSectionView: View {
     let date: String
     let diet: [String: DietItem]
+    let updateDay: ((DayData) -> DayData) -> Void
     private let meals = ["breakfast", "lunch", "dinner"]
     @State private var editing = false
     @State private var editData: [String: (name: String, instructions: String)] = [:]
@@ -116,12 +119,15 @@ struct DietSectionView: View {
     }
 
     private func saveAll() {
+        var updatedDiet = diet
         for meal in meals {
             guard let data = editData[meal], !data.name.isEmpty else { continue }
+            updatedDiet[meal] = DietItem(name: data.name, instructions: data.instructions)
             Task {
                 try? await APIService.shared.saveDiet(date: date, meal: meal, data: ["name": data.name, "instructions": data.instructions])
             }
         }
+        updateDay { d in var d = d; d.diet = updatedDiet; return d }
     }
 }
 
@@ -130,6 +136,7 @@ struct DietSectionView: View {
 struct MonitorSectionView: View {
     let date: String
     let monitor: [String: MonitorItem]
+    let updateDay: ((DayData) -> DayData) -> Void
     private let metrics = [("weight", "Weight (kg)"), ("bloodPressure", "Blood Pressure"), ("heartRate", "Heart Rate"), ("bloodSugar", "Blood Sugar"), ("kickCounts", "Kick Counts"), ("mood", "Mood (1-5)")]
     @State private var editing = false
     @State private var editValues: [String: String] = [:]
@@ -188,10 +195,13 @@ struct MonitorSectionView: View {
     }
 
     private func saveAll() {
+        var updatedMonitor = monitor
         for (key, _) in metrics {
             guard let value = editValues[key], !value.isEmpty else { continue }
+            updatedMonitor[key] = MonitorItem(value: value)
             Task { try? await APIService.shared.saveMonitor(date: date, metric: key, value: value) }
         }
+        updateDay { d in var d = d; d.monitor = updatedMonitor; return d }
     }
 }
 
@@ -201,6 +211,7 @@ struct ExerciseSectionView: View {
     let date: String
     let exercises: [ExerciseItem]
     let onRefresh: () async -> Void
+    let updateDay: ((DayData) -> DayData) -> Void
     @State private var showAdd = false
     @State private var activity = ""
     @State private var steps = ""

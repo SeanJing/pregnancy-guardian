@@ -12,6 +12,8 @@ class APIService {
 
     func calendarCacheSync(key: String) -> [String: DayData]? { calendarCache[key] }
 
+    func updateCalendarCache(key: String, data: [String: DayData]) { calendarCache[key] = data }
+
     // MARK: - Calendar
 
     func getCalendar(from: String, to: String) async throws -> [String: DayData] {
