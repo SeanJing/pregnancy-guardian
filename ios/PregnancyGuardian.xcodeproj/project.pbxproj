@@ -20,6 +20,7 @@
 		A1000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1000011; };
 		A1000012 /* WeeklyGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000012; };
 		A1000013 /* weekly-articles.json in Resources */ = {isa = PBXBuildFile; fileRef = B1000013; };
+		A1000014 /* EventsSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000014; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		B1000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B1000012 /* WeeklyGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyGuideView.swift; sourceTree = "<group>"; };
 		B1000013 /* weekly-articles.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "weekly-articles.json"; sourceTree = "<group>"; };
+		B1000014 /* EventsSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsSectionView.swift; sourceTree = "<group>"; };
 		B1000099 /* PregnancyGuardian.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PregnancyGuardian.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -88,6 +90,7 @@
 				B1000009 /* DocumentsView.swift */,
 				B1000010 /* AssistantView.swift */,
 				B1000012 /* WeeklyGuideView.swift */,
+				B1000014 /* EventsSectionView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -176,6 +179,7 @@
 				A1000009,
 				A1000010,
 				A1000012,
+				A1000014,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
