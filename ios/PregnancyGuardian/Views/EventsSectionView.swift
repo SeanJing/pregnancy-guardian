@@ -11,6 +11,7 @@ struct DisplayEvent: Identifiable {
 
 struct EventsSectionView: View {
     let date: String
+    let apiEvents: [EventItem]
     @State private var displayEvents: [DisplayEvent] = []
     @State private var newTitle = ""
     @State private var eventTime = Date()
@@ -130,19 +131,16 @@ struct EventsSectionView: View {
             }
         }
 
-        // API events
-        if let dayData = try? await APIService.shared.getDay(date) {
-            for event in dayData.events {
-                // Deduplicate: skip if same title already from calendar
-                if !merged.contains(where: { $0.title == event.text && $0.source == "calendar" }) {
-                    merged.append(DisplayEvent(
-                        id: "api_\(event.id)",
-                        title: event.text,
-                        time: "", // API events don't have time yet in TodoItem model
-                        source: "api",
-                        color: Color("Primary")
-                    ))
-                }
+        // API events (from already-loaded DayData)
+        for event in apiEvents {
+            if !merged.contains(where: { $0.title == event.text && $0.source == "calendar" }) {
+                merged.append(DisplayEvent(
+                    id: "api_\(event.id)",
+                    title: event.text,
+                    time: event.time ?? "",
+                    source: "api",
+                    color: Color("Primary")
+                ))
             }
         }
 
