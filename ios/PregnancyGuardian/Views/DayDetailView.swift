@@ -35,16 +35,87 @@ struct DayDetailFullView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                DietSectionView(date: date, diet: dayData.diet, updateDay: updateDay)
-                MonitorSectionView(date: date, monitor: dayData.monitor, updateDay: updateDay)
-                ExerciseSectionView(date: date, exercises: dayData.exercises, onRefresh: onRefresh, updateDay: updateDay)
+        List {
+            // Diet
+            Section("Diet") {
+                let meals = ["breakfast", "lunch", "dinner"]
+                ForEach(meals, id: \.self) { meal in
+                    if let item = dayData.diet[meal], !item.name.isEmpty {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(meal.capitalized)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(item.name)
+                            if !item.instructions.isEmpty {
+                                Text(item.instructions)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    } else {
+                        NavigationLink {
+                            DietEditView(date: date, meal: meal, existing: dayData.diet[meal], updateDay: updateDay)
+                        } label: {
+                            HStack {
+                                Text(meal.capitalized)
+                                Spacer()
+                                Text("Add")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Monitor
+            Section("Monitor") {
+                let metrics = [("weight", "Weight (kg)"), ("bloodPressure", "Blood Pressure"), ("heartRate", "Heart Rate"), ("bloodSugar", "Blood Sugar"), ("kickCounts", "Kick Counts"), ("mood", "Mood (1-5)")]
+                ForEach(metrics, id: \.0) { key, label in
+                    HStack {
+                        Text(label)
+                        Spacer()
+                        if let item = dayData.monitor[key], !item.value.isEmpty {
+                            Text(item.value)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text("—")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                NavigationLink("Edit Metrics") {
+                    MonitorEditView(date: date, monitor: dayData.monitor, updateDay: updateDay)
+                }
+            }
+
+            // Exercises
+            Section("Exercises") {
+                ForEach(dayData.exercises) { ex in
+                    HStack {
+                        Text(ex.activity)
+                        Spacer()
+                        Text("\(ex.steps) steps · \(ex.duration) min")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .onDelete { offsets in
+                    for i in offsets {
+                        let ex = dayData.exercises[i]
+                        Task { try? await APIService.shared.deleteExercise(id: ex.id) }
+                    }
+                }
+                NavigationLink("Add Exercise") {
+                    ExerciseAddView(date: date, onRefresh: onRefresh)
+                }
+            }
+
+            // Events
+            Section("Events") {
                 EventsSectionView(date: date, apiEvents: dayData.events)
             }
-            .padding()
         }
-        .background(Color("Surface"))
+        .listStyle(.insetGrouped)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
     }
