@@ -6,12 +6,19 @@ class APIService {
     private let baseURL = "\(APIService.host)/api"
 
     private init() {}
+    private var calendarCache: [String: [String: DayData]] = [:]
+
+    func invalidateCalendarCache() { calendarCache.removeAll() }
 
     // MARK: - Calendar
 
     func getCalendar(from: String, to: String) async throws -> [String: DayData] {
+        let key = "\(from)_\(to)"
+        if let cached = calendarCache[key] { return cached }
         let data = try await get("/calendar?from=\(from)&to=\(to)")
-        return try JSONDecoder().decode([String: DayData].self, from: data)
+        let result = try JSONDecoder().decode([String: DayData].self, from: data)
+        calendarCache[key] = result
+        return result
     }
 
     func getDay(_ date: String) async throws -> DayData {
@@ -24,6 +31,7 @@ class APIService {
     func createEvent(date: String, text: String, time: String = "") async throws -> EventItem {
         let body = ["date": date, "text": text, "time": time]
         let data = try await post("/events", body: body)
+        invalidateCalendarCache()
         return try JSONDecoder().decode(EventItem.self, from: data)
     }
 
@@ -40,12 +48,14 @@ class APIService {
 
     func saveDiet(date: String, meal: String, data: [String: String]) async throws {
         _ = try await put("/diet/\(date)/\(meal)", jsonBody: data)
+        invalidateCalendarCache()
     }
 
     // MARK: - Monitor
 
     func saveMonitor(date: String, metric: String, value: String) async throws {
         _ = try await put("/monitor/\(date)/\(metric)", jsonBody: ["value": value])
+        invalidateCalendarCache()
     }
 
     // MARK: - Exercises
