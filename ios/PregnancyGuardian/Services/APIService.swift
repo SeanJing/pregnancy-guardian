@@ -21,6 +21,17 @@ class APIService {
         return result
     }
 
+    func getCalendarCached(from: String, to: String) async throws -> [String: DayData]? {
+        return calendarCache["\(from)_\(to)"]
+    }
+
+    func getCalendarFresh(from: String, to: String) async throws -> [String: DayData] {
+        let data = try await get("/calendar?from=\(from)&to=\(to)")
+        let result = try JSONDecoder().decode([String: DayData].self, from: data)
+        calendarCache["\(from)_\(to)"] = result
+        return result
+    }
+
     func getDay(_ date: String) async throws -> DayData {
         let data = try await get("/calendar/\(date)")
         return try JSONDecoder().decode(DayData.self, from: data)
