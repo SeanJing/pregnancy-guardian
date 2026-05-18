@@ -73,11 +73,11 @@ struct HealthMonitorEditView: View {
     @Environment(\.dismiss) private var dismiss
 
     private let metrics = [
-        ("weight", "Weight (kg)", "🏋️"),
-        ("heartRate", "Heart Rate (bpm)", "❤️"),
-        ("bloodSugar", "Blood Sugar (mmol/L)", "🩸"),
-        ("kickCounts", "Kick Counts", "👶"),
-        ("mood", "Mood (1-5)", "😊"),
+        ("weight", "Weight (kg)", "scalemass"),
+        ("heartRate", "Heart Rate (bpm)", "heart.fill"),
+        ("bloodSugar", "Blood Sugar (mmol/L)", "drop.fill"),
+        ("kickCounts", "Kick Counts", "figure.walk"),
+        ("mood", "Mood (1-5)", "face.smiling"),
     ]
 
     private var dateObj: Date {
@@ -99,7 +99,10 @@ struct HealthMonitorEditView: View {
             Section("Metrics") {
                 ForEach(metrics, id: \.0) { key, label, icon in
                     HStack {
-                        Text("\(icon) \(label)")
+                        Image(systemName: icon)
+                            .foregroundColor(Color("Primary"))
+                            .frame(width: 20)
+                        Text(label)
                         Spacer()
                         TextField("—", text: Binding(
                             get: { values[key] ?? "" },
