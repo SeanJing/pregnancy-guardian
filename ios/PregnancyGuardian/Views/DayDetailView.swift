@@ -116,7 +116,14 @@ struct DayDetailFullView: View {
             }
 
             Section("Diary") {
-                DiaryEditView(date: date, content: dayData.diary ?? "", updateDay: updateDay)
+                if let content = dayData.diary, !content.isEmpty {
+                    Text(content)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                NavigationLink(dayData.diary?.isEmpty ?? true ? "Write" : "Edit") {
+                    DiaryFullEditView(date: date, content: dayData.diary ?? "", updateDay: updateDay)
+                }
             }
         }
         .listStyle(.insetGrouped)

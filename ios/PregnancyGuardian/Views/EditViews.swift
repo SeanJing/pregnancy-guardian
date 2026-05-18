@@ -98,25 +98,29 @@ struct MonitorEditView: View {
 
 // MARK: - Diary Edit
 
-struct DiaryEditView: View {
+struct DiaryFullEditView: View {
     let date: String
     let content: String
     let updateDay: ((DayData) -> DayData) -> Void
     @State private var text: String = ""
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         TextEditor(text: $text)
-            .frame(minHeight: 100)
-            .font(.subheadline)
-            .onAppear { text = content }
-            .onChange(of: text) { _, newValue in
-                updateDay { d in var d = d; d.diary = newValue; return d }
+            .font(.body)
+            .padding()
+            .navigationTitle("Diary")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { save() }
+                }
             }
-            .onDisappear { saveDiary() }
+            .onAppear { text = content }
     }
 
-    private func saveDiary() {
-        guard text != content else { return }
+    private func save() {
+        updateDay { d in var d = d; d.diary = text; return d }
         Task {
             var request = URLRequest(url: URL(string: "\(APIService.host)/api/diary/\(date)")!)
             request.httpMethod = "PUT"
@@ -124,6 +128,7 @@ struct DiaryEditView: View {
             request.httpBody = try? JSONSerialization.data(withJSONObject: ["content": text])
             _ = try? await URLSession.shared.data(for: request)
         }
+        dismiss()
     }
 }
 
