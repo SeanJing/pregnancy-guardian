@@ -169,6 +169,23 @@ class TestSearch:
         assert res.json() == {"calendar": [], "gallery": [], "documents": []}
 
 
+class TestDiary:
+    def test_save_and_get(self, client):
+        client.put("/api/diary/2026-05-13", json={"content": "Feeling great today!"})
+        day = client.get("/api/calendar/2026-05-13").json()
+        assert day["diary"] == "Feeling great today!"
+
+    def test_upsert(self, client):
+        client.put("/api/diary/2026-05-13", json={"content": "First entry"})
+        client.put("/api/diary/2026-05-13", json={"content": "Updated entry"})
+        day = client.get("/api/calendar/2026-05-13").json()
+        assert day["diary"] == "Updated entry"
+
+    def test_empty(self, client):
+        day = client.get("/api/calendar/2026-05-13").json()
+        assert day.get("diary", "") == ""
+
+
 class TestBackup:
     def test_returns_zip(self, client):
         res = client.get("/api/backup")

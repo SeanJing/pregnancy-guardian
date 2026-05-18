@@ -74,6 +74,10 @@ def init_db():
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS diary (
+            date TEXT PRIMARY KEY,
+            content TEXT DEFAULT ''
+        );
         CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
         CREATE INDEX IF NOT EXISTS idx_diet_date ON diet(date);
         CREATE INDEX IF NOT EXISTS idx_monitor_date ON monitor(date);
@@ -121,7 +125,7 @@ def get_calendar():
 @app.get("/api/calendar/{date_str}")
 def get_calendar_day(date_str: str):
     conn = get_db()
-    data = {"events": [], "diet": {}, "monitor": {}, "exercises": []}
+    data = {"events": [], "diet": {}, "monitor": {}, "exercises": [], "diary": ""}
     for r in conn.execute("SELECT id, text, time FROM events WHERE date = ? ORDER BY id", (date_str,)):
         data["events"].append({"id": r["id"], "text": r["text"], "time": r["time"] or ""})
     for r in conn.execute("SELECT id, meal, name, instructions FROM diet WHERE date = ? ORDER BY id", (date_str,)):
@@ -130,6 +134,9 @@ def get_calendar_day(date_str: str):
         data["monitor"][r["metric"]] = {"id": r["id"], "value": r["value"]}
     for r in conn.execute("SELECT id, activity, steps, duration FROM exercises WHERE date = ? ORDER BY id", (date_str,)):
         data["exercises"].append({"id": r["id"], "activity": r["activity"], "steps": r["steps"], "duration": r["duration"]})
+    row = conn.execute("SELECT content FROM diary WHERE date = ?", (date_str,)).fetchone()
+    if row:
+        data["diary"] = row["content"]
     conn.close()
     return data
 
@@ -309,6 +316,21 @@ def delete_document(doc_id: int):
         (UPLOADS_DIR / row["filename"]).unlink(missing_ok=True)
         conn.execute("DELETE FROM documents WHERE id = ?", (doc_id,))
         conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
+# --- Diary ---
+
+@app.put("/api/diary/{date_str}")
+async def save_diary(date_str: str, request: Request):
+    body = await request.json()
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO diary (date, content) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET content=excluded.content",
+        (date_str, body.get("content", "")),
+    )
+    conn.commit()
     conn.close()
     return {"ok": True}
 
