@@ -6,5 +6,9 @@
 	<string>Pregnancy Guardian needs calendar access to show your appointments and create reminders for checkups.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Pregnancy Guardian needs full calendar access to show your appointments and create reminders for checkups.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Pregnancy Guardian reads your health data (weight, heart rate, blood sugar, steps) to auto-fill daily metrics.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Pregnancy Guardian saves your recorded metrics (weight, heart rate, blood sugar) to Apple Health.</string>
 </dict>
 </plist>

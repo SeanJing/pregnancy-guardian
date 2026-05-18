@@ -84,7 +84,7 @@ struct DayDetailFullView: View {
                     }
                 }
                 NavigationLink("Edit Metrics") {
-                    MonitorEditView(date: date, monitor: dayData.monitor, updateDay: updateDay)
+                    HealthMonitorEditView(date: date, monitor: dayData.monitor, updateDay: updateDay)
                 }
             }
 
