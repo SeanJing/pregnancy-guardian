@@ -12,6 +12,7 @@ async function initDB(db) {
   await db.exec("CREATE TABLE IF NOT EXISTS gallery (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, caption TEXT DEFAULT '', created_at TEXT DEFAULT (datetime('now')));")
   await db.exec("CREATE TABLE IF NOT EXISTS documents (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL, original_name TEXT NOT NULL, size INTEGER DEFAULT 0, created_at TEXT DEFAULT (datetime('now')));")
   await db.exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);")
+  await db.exec("CREATE TABLE IF NOT EXISTS diary (date TEXT PRIMARY KEY, content TEXT DEFAULT '');")
 }
 
 app.use('/api/*', async (c, next) => {
@@ -49,7 +50,7 @@ app.get('/api/calendar', async (c) => {
   const from = c.req.query('from')
   const to = c.req.query('to')
   const data = {}
-  const ensure = (d) => { if (!data[d]) data[d] = { events: [], diet: {}, monitor: {}, exercises: [] } }
+  const ensure = (d) => { if (!data[d]) data[d] = { events: [], diet: {}, monitor: {}, exercises: [], diary: '' } }
 
   const where = (from && to) ? ' WHERE date >= ? AND date <= ?' : ''
   const params = (from && to) ? [from, to] : []
@@ -66,13 +67,16 @@ app.get('/api/calendar', async (c) => {
   for (const r of (await db.prepare(`SELECT id, date, activity, steps, duration FROM exercises${where} ORDER BY id`).bind(...params).all()).results) {
     ensure(r.date); data[r.date].exercises.push({ id: r.id, activity: r.activity, steps: r.steps, duration: r.duration })
   }
+  for (const r of (await db.prepare(`SELECT date, content FROM diary${where} ORDER BY date`).bind(...params).all()).results) {
+    ensure(r.date); data[r.date].diary = r.content || ''
+  }
   return c.json(data)
 })
 
 app.get('/api/calendar/:date', async (c) => {
   const db = c.env.DB
   const date = c.req.param('date')
-  const data = { events: [], diet: {}, monitor: {}, exercises: [] }
+  const data = { events: [], diet: {}, monitor: {}, exercises: [], diary: '' }
   for (const r of (await db.prepare('SELECT id, time, text, text FROM events WHERE date=? ORDER BY id').bind(date).all()).results) {
     data.events.push({ id: r.id, text: r.text, time: r.time || '' })
   }
@@ -85,6 +89,8 @@ app.get('/api/calendar/:date', async (c) => {
   for (const r of (await db.prepare('SELECT id, activity, steps, duration FROM exercises WHERE date=? ORDER BY id').bind(date).all()).results) {
     data.exercises.push({ id: r.id, activity: r.activity, steps: r.steps, duration: r.duration })
   }
+  const diaryRow = await db.prepare('SELECT content FROM diary WHERE date=?').bind(date).first()
+  data.diary = diaryRow?.content || ''
   return c.json(data)
 })
 
@@ -263,6 +269,15 @@ app.get('/uploads/:filename', async (c) => {
   obj.writeHttpMetadata(headers)
   headers.set('cache-control', 'public, max-age=31536000')
   return new Response(obj.body, { headers })
+})
+
+// --- Diary ---
+app.put('/api/diary/:date', async (c) => {
+  const db = c.env.DB
+  const date = c.req.param('date')
+  const { content } = await c.req.json()
+  await db.prepare('INSERT INTO diary (date, content) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET content=excluded.content').bind(date, content || '').run()
+  return c.json({ ok: true })
 })
 
 // --- Trends ---

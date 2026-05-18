@@ -114,6 +114,10 @@ struct DayDetailFullView: View {
             Section("Events") {
                 EventsSectionView(date: date, apiEvents: dayData.events)
             }
+
+            Section("Diary") {
+                DiaryEditView(date: date, content: dayData.diary ?? "", updateDay: updateDay)
+            }
         }
         .listStyle(.insetGrouped)
         .navigationTitle(title)

@@ -5,6 +5,7 @@ struct DayData: Codable {
     var diet: [String: DietItem]
     var monitor: [String: MonitorItem]
     var exercises: [ExerciseItem]
+    var diary: String?
 }
 
 struct EventItem: Codable, Identifiable {

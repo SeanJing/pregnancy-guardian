@@ -4,6 +4,7 @@ import DietSection from './DietSection'
 import MonitorSection from './MonitorSection'
 import ExerciseSection from './ExerciseSection'
 import EventsSection from './EventsSection'
+import DiarySection from './DiarySection'
 import WeeklyArticle from './WeeklyArticle'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -80,6 +81,7 @@ export default function CalendarGrid({ weekStart, data, activeKey, onDayClick, o
                 <MonitorSection monitor={dayData.monitor || {}} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
                 <ExerciseSection exercises={dayData.exercises || []} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
                 <EventsSection events={dayData.events || []} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
+                <DiarySection diary={dayData.diary || ''} date={displayKey} updateDay={(updater) => updateDay(displayKey, updater)} />
               </div>
             )}
           </div>

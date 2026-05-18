@@ -96,6 +96,37 @@ struct MonitorEditView: View {
     }
 }
 
+// MARK: - Diary Edit
+
+struct DiaryEditView: View {
+    let date: String
+    let content: String
+    let updateDay: ((DayData) -> DayData) -> Void
+    @State private var text: String = ""
+
+    var body: some View {
+        TextEditor(text: $text)
+            .frame(minHeight: 100)
+            .font(.subheadline)
+            .onAppear { text = content }
+            .onChange(of: text) { _, newValue in
+                updateDay { d in var d = d; d.diary = newValue; return d }
+            }
+            .onDisappear { saveDiary() }
+    }
+
+    private func saveDiary() {
+        guard text != content else { return }
+        Task {
+            var request = URLRequest(url: URL(string: "\(APIService.host)/api/diary/\(date)")!)
+            request.httpMethod = "PUT"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONSerialization.data(withJSONObject: ["content": text])
+            _ = try? await URLSession.shared.data(for: request)
+        }
+    }
+}
+
 // MARK: - Exercise Add
 
 struct ExerciseAddView: View {

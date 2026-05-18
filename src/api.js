@@ -41,6 +41,9 @@ export const api = {
   // Diet
   saveDiet: (date, meal, data) => { invalidateCalendar(); return json(`/diet/${date}/${meal}`, jsonBody(data)) },
 
+  // Diary
+  saveDiary: (date, content) => { invalidateCalendar(); return json(`/diary/${date}`, jsonBody({ content })) },
+
   // Monitor
   saveMonitor: (date, metric, value) => { invalidateCalendar(); return json(`/monitor/${date}/${metric}`, jsonBody({ value })) },
 
